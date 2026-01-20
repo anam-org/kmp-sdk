@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  android-check:
+    name: Android & Common Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Spotless
+        run: ./gradlew spotlessCheck
+
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      - name: Build Android App
+        run: ./gradlew :apps:android:assembleDebug
+
+  ios-check:
+    name: iOS Build & Checks
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: swiftlint lint
+        working-directory: apps/ios
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: apps/ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('apps/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Generate Dummy Framework
+        run: ./gradlew :packages:sdk:generateDummyFramework
+
+      - name: Install CocoaPods Dependencies
+        run: pod install --repo-update
+        working-directory: apps/ios
+
+      - name: List Available Simulators
+        run: xcrun xctrace list devices
+
+      - name: Build iOS App
+        run: |
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            clean build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            NO_SIGNING_EFFORT=YES
+        working-directory: apps/ios
+

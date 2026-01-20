@@ -1,0 +1,9 @@
+source 'https://cdn.cocoapods.org'
+
+platform :ios, '13.0'
+use_frameworks!
+
+target 'App' do
+  pod 'shared', :path => '../../packages/sdk'
+  pod 'WebRTC-SDK', '137.7151.09'
+end

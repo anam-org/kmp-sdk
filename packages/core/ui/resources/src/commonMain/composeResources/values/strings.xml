@@ -1,0 +1,26 @@
+<resources>
+    <!-- Global -->
+    <string name="app_name">Anam</string>
+
+    <!-- Tabs -->
+    <string name="tab_avatars">Avatars</string>
+    <string name="tab_messages">Messages</string>
+    <string name="tab_llms">LLMs</string>
+    <string name="tab_voices">Voices</string>
+
+    <!-- Home -->
+    <string name="messages_empty_state_message">Start a session to see your messages here!</string>
+    <string name="session_hangup_content_description">Hangup</string>
+    <string name="session_call_content_description">Call</string>
+
+    <!-- Settings -->
+    <string name="settings_content_description">Settings</string>
+    <string name="settings_header_ui">User Interface</string>
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_licenses_title">Open source licenses</string>
+    <string name="settings_licenses_summary">Anam open source</string>
+
+    <!-- Licenses -->
+    <string name="licenses_title">Licenses</string>
+    <string name="license_artifact_version_format">%1$s v%2$s</string>
+</resources>
