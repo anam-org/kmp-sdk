@@ -23,4 +23,15 @@
     <!-- Licenses -->
     <string name="licenses_title">Licenses</string>
     <string name="license_artifact_version_format">%1$s v%2$s</string>
+
+    <!-- Notifications -->
+    <string name="notification_error_title">Error</string>
+    <string name="notification_warning_title">Warning</string>
+    <string name="notification_info_title">Information</string>
+    <string name="notification_success_title">Success</string>
+    <string name="notification_ok_button">OK</string>
+
+    <!-- Errors -->
+    <string name="error_missing_api_key">This app was built without an API key. Please read the build instructions.</string>
+    <string name="error_sdk_error">An error occurred in the SDK. Please try again.</string>
 </resources>

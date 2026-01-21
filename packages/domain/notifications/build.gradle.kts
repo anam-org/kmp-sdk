@@ -8,9 +8,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(project(":packages:core:data"))
-                api(project(":packages:core:auth"))
-                implementation(project(":packages:core:licenses"))
+                api(project(":packages:core:notifications"))
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
 
@@ -22,5 +21,5 @@ kotlin {
 }
 
 android {
-    namespace = "ai.anam.lab.client.domain.data"
+    namespace = "ai.anam.lab.client.domain.notifications"
 }

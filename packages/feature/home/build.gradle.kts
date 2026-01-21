@@ -24,6 +24,7 @@ kotlin {
                 implementation(project(":packages:core:ui:resources"))
 
                 implementation(project(":packages:domain:data"))
+                implementation(project(":packages:domain:notifications"))
                 implementation(project(":packages:domain:permissions"))
                 implementation(project(":packages:domain:sessions"))
 
