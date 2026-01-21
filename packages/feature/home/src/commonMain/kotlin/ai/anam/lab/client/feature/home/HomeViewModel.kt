@@ -5,25 +5,48 @@ import ai.anam.lab.client.core.di.ViewModelScope
 import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.navigation.FeatureRoute
 import ai.anam.lab.client.core.navigation.Navigator
+import ai.anam.lab.client.core.notifications.ErrorCode
+import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
 import ai.anam.lab.client.core.ui.resources.generated.resources.tab_avatars
 import ai.anam.lab.client.core.ui.resources.generated.resources.tab_llms
 import ai.anam.lab.client.core.ui.resources.generated.resources.tab_messages
 import ai.anam.lab.client.core.ui.resources.generated.resources.tab_voices
+import ai.anam.lab.client.domain.data.IsApiKeyConfiguredInteractor
+import ai.anam.lab.client.domain.notifications.SendNotificationInteractor
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 
 @Inject
 @ViewModelKey(HomeViewModel::class)
 @ContributesIntoMap(ViewModelScope::class)
-class HomeViewModel(private val logger: Logger, private val navigator: Navigator) : ViewModel() {
+class HomeViewModel(
+    private val logger: Logger,
+    private val navigator: Navigator,
+    private val isApiKeyConfiguredInteractor: IsApiKeyConfiguredInteractor,
+    private val sendNotificationInteractor: SendNotificationInteractor,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeViewState())
     val state = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val isConfigured = isApiKeyConfiguredInteractor()
+            if (!isConfigured) {
+                logger.e(TAG) { "API key not configured" }
+                sendNotificationInteractor(
+                    Notification.Error(errorCode = ErrorCode.MISSING_API_KEY),
+                )
+            }
+        }
+    }
 
     fun selectSettings() {
         logger.i(TAG) { "Navigating to settings" }

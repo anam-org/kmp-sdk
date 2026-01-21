@@ -27,11 +27,13 @@ kotlin {
                 export(project(":packages:core:permissions"))
                 export(project(":packages:core:settings"))
                 export(project(":packages:core:viewmodel"))
+                export(project(":packages:core:notifications"))
                 export(project(":packages:core:ui:core"))
                 export(project(":packages:core:ui:imageloading"))
                 export(project(":packages:core:ui:theme"))
 
                 export(project(":packages:domain:data"))
+                export(project(":packages:domain:notifications"))
                 export(project(":packages:domain:permissions"))
                 export(project(":packages:domain:sessions"))
 
@@ -41,6 +43,7 @@ kotlin {
                 export(project(":packages:feature:messages"))
                 export(project(":packages:feature:voices"))
                 export(project(":packages:feature:llms"))
+                export(project(":packages:feature:notifications"))
                 export(project(":packages:feature:settings"))
                 export(project(":packages:feature:licenses"))
             }
@@ -69,11 +72,13 @@ kotlin {
                 api(project(":packages:core:permissions"))
                 api(project(":packages:core:settings"))
                 api(project(":packages:core:viewmodel"))
+                api(project(":packages:core:notifications"))
                 api(project(":packages:core:ui:core"))
                 api(project(":packages:core:ui:imageloading"))
                 api(project(":packages:core:ui:theme"))
 
                 api(project(":packages:domain:data"))
+                api(project(":packages:domain:notifications"))
                 api(project(":packages:domain:permissions"))
                 api(project(":packages:domain:sessions"))
 
@@ -83,6 +88,7 @@ kotlin {
                 api(project(":packages:feature:messages"))
                 api(project(":packages:feature:voices"))
                 api(project(":packages:feature:llms"))
+                api(project(":packages:feature:notifications"))
                 api(project(":packages:feature:settings"))
                 api(project(":packages:feature:licenses"))
             }

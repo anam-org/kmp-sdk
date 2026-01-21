@@ -12,6 +12,7 @@ import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.logging.di.LoggingSubgraph
 import ai.anam.lab.client.core.navigation.Navigator
 import ai.anam.lab.client.core.navigation.NavigatorImpl
+import ai.anam.lab.client.core.notifications.di.NotificationsSubgraph
 import ai.anam.lab.client.core.permissions.PermissionsManager
 import ai.anam.lab.client.core.permissions.PermissionsManagerImpl
 import ai.anam.lab.client.core.permissions.di.PermissionsSubgraph
@@ -21,6 +22,7 @@ import ai.anam.lab.client.core.settings.di.SettingsSubgraph
 import ai.anam.lab.client.core.ui.imageloading.di.ImageLoadingSubgraph
 import ai.anam.lab.client.core.viewmodel.ViewModelGraphProvider
 import ai.anam.lab.client.domain.data.di.DomainDataSubgraph
+import ai.anam.lab.client.domain.notifications.di.DomainNotificationsSubgraph
 import ai.anam.lab.client.domain.permissions.di.DomainPermissionsSubgraph
 import ai.anam.lab.client.domain.session.di.DomainSessionSubgraph
 import ai.anam.lab.client.feature.avatars.AvatarsViewModel
@@ -28,6 +30,7 @@ import ai.anam.lab.client.feature.home.HomeViewModel
 import ai.anam.lab.client.feature.licenses.LicensesViewModel
 import ai.anam.lab.client.feature.llms.LlmsViewModel
 import ai.anam.lab.client.feature.messages.MessagesViewModel
+import ai.anam.lab.client.feature.notifications.NotificationsViewModel
 import ai.anam.lab.client.feature.session.SessionViewModel
 import ai.anam.lab.client.feature.settings.SettingsViewModel
 import ai.anam.lab.client.feature.voices.VoicesViewModel
@@ -83,7 +86,9 @@ interface ClientAppManualBindings :
     PermissionsSubgraph,
     HttpSubgraph,
     ApiSubgraph,
+    NotificationsSubgraph,
     DomainDataSubgraph,
+    DomainNotificationsSubgraph,
     DomainSessionSubgraph,
     DomainPermissionsSubgraph {
 
@@ -138,4 +143,9 @@ interface ClientAppManualBindings :
     @IntoMap
     @ViewModelKey(LicensesViewModel::class)
     fun providesLicensesViewModel(provider: Provider<LicensesViewModel>): ViewModel = provider()
+
+    @Provides
+    @IntoMap
+    @ViewModelKey(NotificationsViewModel::class)
+    fun providesNotificationsViewModel(provider: Provider<NotificationsViewModel>): ViewModel = provider()
 }

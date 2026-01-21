@@ -10,6 +10,7 @@ import ai.anam.lab.client.core.ui.core.LocalPreferences
 import ai.anam.lab.client.core.ui.theme.AnamTheme
 import ai.anam.lab.client.core.viewmodel.LocalViewModelGraphProvider
 import ai.anam.lab.client.core.viewmodel.ViewModelGraphProvider
+import ai.anam.lab.client.feature.notifications.NotificationsView
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -52,6 +53,8 @@ fun App(
                     features = features,
                     navController = navController,
                 )
+
+                NotificationsView()
             }
         }
     }

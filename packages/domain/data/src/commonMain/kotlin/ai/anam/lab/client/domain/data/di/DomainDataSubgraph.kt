@@ -1,5 +1,6 @@
 package ai.anam.lab.client.domain.data.di
 
+import ai.anam.lab.client.core.auth.AuthRepository
 import ai.anam.lab.client.core.common.Either
 import ai.anam.lab.client.core.data.AvatarRepository
 import ai.anam.lab.client.core.data.LlmRepository
@@ -14,6 +15,7 @@ import ai.anam.lab.client.domain.data.FetchLlmInteractor
 import ai.anam.lab.client.domain.data.FetchLlmsInteractor
 import ai.anam.lab.client.domain.data.FetchVoiceInteractor
 import ai.anam.lab.client.domain.data.FetchVoicesInteractor
+import ai.anam.lab.client.domain.data.IsApiKeyConfiguredInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarIdInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentLlmIdInteractor
@@ -151,4 +153,11 @@ interface DomainDataSubgraph {
     fun providesFetchLicensesInteractor(licenseStore: LicenseStore): FetchLicensesInteractor = FetchLicensesInteractor {
         licenseStore.getLicenses()
     }
+
+    @Provides
+    fun providesIsApiKeyConfiguredInteractor(authRepository: AuthRepository): IsApiKeyConfiguredInteractor =
+        IsApiKeyConfiguredInteractor {
+            val apiToken = authRepository.getApiToken()
+            apiToken != null && apiToken.isNotEmpty()
+        }
 }
