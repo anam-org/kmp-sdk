@@ -32,8 +32,8 @@ kotlin {
         ios.deploymentTarget = "13.0"
         name = "shared"
 
+        // Version defined in consumer's Podfile.
         pod("WebRTC-SDK") {
-            version = "137.7151.09"
             moduleName = "WebRTC"
         }
 
