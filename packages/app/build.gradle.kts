@@ -1,3 +1,4 @@
+import ai.anam.lab.client.gradle.Versions
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
@@ -94,8 +95,10 @@ kotlin {
             }
         }
     }
-}
 
-android {
-    namespace = "ai.anam.lab.client.shared"
+    androidLibrary {
+        namespace = "ai.anam.lab.client.shared"
+        compileSdk = Versions.COMPILE_SDK
+        minSdk = Versions.MIN_SDK
+    }
 }

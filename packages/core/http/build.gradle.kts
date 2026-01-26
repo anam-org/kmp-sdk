@@ -1,3 +1,5 @@
+import ai.anam.lab.client.gradle.Versions
+
 plugins {
     id("ai.anam.lab.client.android.library")
     id("ai.anam.lab.client.multiplatform")
@@ -26,8 +28,10 @@ kotlin {
             }
         }
     }
-}
 
-android {
-    namespace = "ai.anam.lab.client.core.http"
+    androidLibrary {
+        namespace = "ai.anam.lab.client.core.http"
+        compileSdk = Versions.COMPILE_SDK
+        minSdk = Versions.MIN_SDK
+    }
 }

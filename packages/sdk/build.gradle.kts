@@ -1,3 +1,4 @@
+import ai.anam.lab.client.gradle.Versions
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
@@ -103,10 +104,12 @@ kotlin {
         // Configure iosTest to depend on nonAndroidTest
         iosTest.get().dependsOn(nonAndroidTest)
     }
-}
 
-android {
-    namespace = "ai.anam.lab"
+    androidLibrary {
+        namespace = "ai.anam.lab"
+        compileSdk = Versions.COMPILE_SDK
+        minSdk = Versions.MIN_SDK
+    }
 }
 
 buildConfig {

@@ -1,3 +1,5 @@
+import ai.anam.lab.client.gradle.Versions
+
 plugins {
     id("ai.anam.lab.client.android.library")
     id("ai.anam.lab.client.multiplatform")
@@ -20,8 +22,10 @@ kotlin {
             }
         }
     }
-}
 
-android {
-    namespace = "ai.anam.lab.client.core.ui.video"
+    androidLibrary {
+        namespace = "ai.anam.lab.client.core.ui.video"
+        compileSdk = Versions.COMPILE_SDK
+        minSdk = Versions.MIN_SDK
+    }
 }

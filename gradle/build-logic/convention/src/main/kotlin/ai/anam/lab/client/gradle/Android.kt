@@ -9,7 +9,7 @@ import org.gradle.api.plugins.PluginManager
 import org.gradle.kotlin.dsl.configure
 
 fun Project.configureAndroid() {
-    android {
+    application {
         compileSdkVersion(Versions.COMPILE_SDK)
 
         defaultConfig {
@@ -21,12 +21,24 @@ fun Project.configureAndroid() {
     }
 }
 
-internal fun Project.android(action: BaseExtension.() -> Unit) = extensions.configure<BaseExtension>(action)
+fun Project.configureCompose() {
+    if (pluginManager.hasPlugin("com.android.application")) {
+        application { buildFeatures.compose = true }
+    }
+}
+
+private fun Project.application(action: BaseExtension.() -> Unit) = extensions.configure<BaseExtension>(action)
 
 /**
  * Extension function to determine if one of the many Android plugin's has been applied to the Project.
  */
 internal fun PluginManager.hasAndroidPlugin(): Boolean = listOf(
-    "com.android.library",
     "com.android.application",
+    "com.android.kotlin.multiplatform.library",
 ).any { hasPlugin(it) }
+
+/**
+ * Extension function to determine if KMP's androidTarget is required.
+ */
+internal fun PluginManager.isAndroidTargetRequired(): Boolean = hasPlugin("com.android.application")
+
