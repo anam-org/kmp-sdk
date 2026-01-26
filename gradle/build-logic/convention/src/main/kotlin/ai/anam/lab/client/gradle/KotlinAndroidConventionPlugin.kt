@@ -14,7 +14,6 @@ class KotlinAndroidConventionPlugin : Plugin<Project> {
             }
 
             configureSpotless()
-            configureKotlin()
         }
     }
 }
