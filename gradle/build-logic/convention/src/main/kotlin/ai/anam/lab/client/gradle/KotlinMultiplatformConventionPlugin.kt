@@ -58,7 +58,6 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
             }
 
             configureSpotless()
-            configureKotlin()
         }
     }
 }
