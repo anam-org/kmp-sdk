@@ -3,7 +3,7 @@
 
 package ai.anam.lab.client.gradle
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
 import org.gradle.kotlin.dsl.configure
@@ -27,7 +27,7 @@ fun Project.configureCompose() {
     }
 }
 
-private fun Project.application(action: BaseExtension.() -> Unit) = extensions.configure<BaseExtension>(action)
+private fun Project.application(action: ApplicationExtension.() -> Unit) = extensions.configure<ApplicationExtension>(action)
 
 /**
  * Extension function to determine if one of the many Android plugin's has been applied to the Project.
