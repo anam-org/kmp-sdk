@@ -1,6 +1,3 @@
-// Copyright 2023, Christopher Banes and the Tivi project contributors
-// SPDX-License-Identifier: Apache-2.0
-
 package ai.anam.lab.client.gradle
 
 import org.gradle.api.Plugin
@@ -10,11 +7,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             with(pluginManager) {
-                apply("com.android.library")
-                apply("org.gradle.android.cache-fix")
+                apply("com.android.kotlin.multiplatform.library")
             }
-
-            configureAndroid()
         }
     }
 }

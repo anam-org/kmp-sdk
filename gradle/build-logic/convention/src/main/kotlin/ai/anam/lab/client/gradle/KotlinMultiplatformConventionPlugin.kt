@@ -19,10 +19,16 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
         extensions.configure<KotlinMultiplatformExtension> {
             applyDefaultHierarchyTemplate()
 
-            if (pluginManager.hasAndroidPlugin()) {
-                androidTarget()
-            } else {
-                jvm()
+            when {
+                pluginManager.hasAndroidPlugin() -> {
+                    // The new Android Library plugin automatically handles the androidLibrary target.
+                    if (pluginManager.isAndroidTargetRequired()) {
+                        androidTarget()
+                    }
+                }
+                else -> {
+                    jvm()
+                }
             }
 
             iosArm64()
@@ -53,13 +59,6 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
 
             configureSpotless()
             configureKotlin()
-
-            // Note: Disable Skie, at least for now. We can decide later whether to use Skie to build our Swift
-            // interface or just do this manually.
-            // if (path.endsWith(":packages:app")) {
-            //    pluginManager.apply("co.touchlab.skie")
-            //    configureSkie()
-            //}
         }
     }
 }
