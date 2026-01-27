@@ -23,8 +23,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -81,7 +79,7 @@ internal class SignallingClientImpl(
     private val apiGateway: ApiGateway?,
     private val httpClient: HttpClient,
     private val logger: Logger,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val ioDispatcher: CoroutineDispatcher = DefaultDispatchers.IO,
 ) : SignallingClient {
     // The expected interval between heartbeats.
     private val heartbeatInterval by lazy {
