@@ -15,19 +15,19 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 
 class ApiResultTest {
 
     @Test
-    fun `apiCall returns Success when block succeeds`() = runBlocking {
+    fun `apiCall returns Success when block succeeds`() = runTest {
         val result = apiCall { "test-data" }
         assertSuccess(result, "test-data")
     }
 
     @Test
-    fun `apiCall returns HttpError when ResponseException is thrown`() = runBlocking {
+    fun `apiCall returns HttpError when ResponseException is thrown`() = runTest {
         val statusCode = 404
         val errorResponse = """{"error":"NotFound","message":"Resource not found"}"""
         val httpClient = createMockHttpClient(statusCode, errorResponse)
@@ -40,7 +40,7 @@ class ApiResultTest {
     }
 
     @Test
-    fun `apiCall returns HttpError with null message when JSON error response cannot be parsed`() = runBlocking {
+    fun `apiCall returns HttpError with null message when JSON error response cannot be parsed`() = runTest {
         val statusCode = 500
         val errorResponse = """{"invalid":"json"}"""
         val httpClient = createMockHttpClient(statusCode, errorResponse)
@@ -53,7 +53,7 @@ class ApiResultTest {
     }
 
     @Test
-    fun `apiCall returns HttpError with null message when error response has no message field`() = runBlocking {
+    fun `apiCall returns HttpError with null message when error response has no message field`() = runTest {
         val statusCode = 400
         val errorResponse = """{"error":"BadRequest"}"""
         val httpClient = createMockHttpClient(statusCode, errorResponse)
@@ -66,7 +66,7 @@ class ApiResultTest {
     }
 
     @Test
-    fun `apiCall returns HttpError with null rawResponse when body cannot be read`() = runBlocking {
+    fun `apiCall returns HttpError with null rawResponse when body cannot be read`() = runTest {
         val statusCode = 403
         // Create a mock engine that responds with an error status
         val mockEngine = MockEngine {
@@ -92,7 +92,7 @@ class ApiResultTest {
     }
 
     @Test
-    fun `apiCall returns SerializationError when SerializationException is thrown`() = runBlocking {
+    fun `apiCall returns SerializationError when SerializationException is thrown`() = runTest {
         val serializationException = SerializationException("Failed to parse JSON")
         val result = apiCallWithException(serializationException)
 
@@ -101,7 +101,7 @@ class ApiResultTest {
 
     @Test
     fun `apiCall returns SerializationError with default message when SerializationException has no message`() =
-        runBlocking {
+        runTest {
             val serializationException = SerializationException(cause = null)
             val result = apiCallWithException(serializationException)
 
@@ -109,7 +109,7 @@ class ApiResultTest {
         }
 
     @Test
-    fun `apiCall returns UnknownError when generic Exception is thrown`() = runBlocking {
+    fun `apiCall returns UnknownError when generic Exception is thrown`() = runTest {
         val exception = RuntimeException("Network timeout")
         val result = apiCallWithException(exception)
 
@@ -117,7 +117,7 @@ class ApiResultTest {
     }
 
     @Test
-    fun `apiCall returns UnknownError with default message when Exception has no message`() = runBlocking {
+    fun `apiCall returns UnknownError with default message when Exception has no message`() = runTest {
         val exception = RuntimeException()
         val result = apiCallWithException(exception)
 
@@ -126,7 +126,7 @@ class ApiResultTest {
 
     @Test
     fun `apiCall propagates CancellationException`() {
-        runBlocking {
+        runTest {
             val cancellationException = CancellationException("Cancelled")
 
             assertFailsWith<CancellationException> {
