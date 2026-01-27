@@ -11,4 +11,3 @@ class LicenseeConventionPlugin : Plugin<Project> {
         configureLicensee()
     }
 }
-
