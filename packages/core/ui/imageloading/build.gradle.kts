@@ -20,6 +20,14 @@ kotlin {
             dependencies {
             }
         }
+
+        wasmJsMain {
+            dependencies {
+                implementation(libs.coil.wasm.js)
+                implementation(libs.coil.network.ktor3.wasm.js)
+                implementation(libs.ktor.client.js)
+            }
+        }
     }
 
     androidLibrary {
