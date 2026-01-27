@@ -18,6 +18,9 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 
+# Kotlin/JS–Wasm toolchain output
+kotlin-js-store/
+
 # CocoaPods
 **/Pods/
 **/Podfile.lock
