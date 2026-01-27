@@ -1,12 +1,12 @@
 package ai.anam.lab.ui
 
+import ai.anam.lab.SessionTracks
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.shepeliev.webrtckmp.VideoTrack
 
 @Composable
 internal expect fun VideoSession(
-    videoTrack: VideoTrack,
+    tracks: SessionTracks,
     onFirstFrameRendered: () -> Unit,
     modifier: Modifier = Modifier,
 )

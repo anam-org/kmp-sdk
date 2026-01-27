@@ -1,5 +1,6 @@
 package ai.anam.lab.ui
 
+import ai.anam.lab.SessionTracks
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -23,11 +24,11 @@ import org.webrtc.VideoSink
  * https://github.com/shepeliev/webrtc-kmp/blob/main/sample/composeApp/src/androidMain/kotlin/Video.android.kt
  */
 @Composable
-internal actual fun VideoSession(videoTrack: VideoTrack, onFirstFrameRendered: () -> Unit, modifier: Modifier) {
+internal actual fun VideoSession(tracks: SessionTracks, onFirstFrameRendered: () -> Unit, modifier: Modifier) {
     var renderer by remember { mutableStateOf<SurfaceViewRenderer?>(null) }
 
     val lifecycleEventObserver =
-        remember(renderer, videoTrack) {
+        remember(renderer, tracks.videoTrack) {
             LifecycleEventObserver { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_RESUME -> {
@@ -44,12 +45,12 @@ internal actual fun VideoSession(videoTrack: VideoTrack, onFirstFrameRendered: (
                                 },
                             )
 
-                            videoTrack.addSinkCatching(it)
+                            tracks.videoTrack.addSinkCatching(it)
                         }
                     }
 
                     Lifecycle.Event.ON_PAUSE -> {
-                        renderer?.also { videoTrack.removeSinkCatching(it) }
+                        renderer?.also { tracks.videoTrack.removeSinkCatching(it) }
                         renderer?.release()
                     }
 
@@ -65,7 +66,7 @@ internal actual fun VideoSession(videoTrack: VideoTrack, onFirstFrameRendered: (
         lifecycle.addObserver(lifecycleEventObserver)
 
         onDispose {
-            renderer?.let { videoTrack.removeSinkCatching(it) }
+            renderer?.let { tracks.videoTrack.removeSinkCatching(it) }
             renderer?.release()
             lifecycle.removeObserver(lifecycleEventObserver)
         }

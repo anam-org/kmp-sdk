@@ -2,6 +2,7 @@ package ai.anam.lab.webrtc
 
 import ai.anam.lab.utils.Logger
 import ai.anam.lab.webrtc.MediaStreamManagerImpl.MediaAccessException
+import com.shepeliev.webrtckmp.AudioTrack
 import com.shepeliev.webrtckmp.MediaDevices
 import com.shepeliev.webrtckmp.MediaStream
 import com.shepeliev.webrtckmp.MediaStreamTrack
@@ -41,6 +42,11 @@ internal interface MediaStreamManager {
     val remoteVideoTrack: Flow<VideoTrack?>
 
     /**
+     * A flow which provides access to the [MediaStreamTrack] which represents the remote audio.
+     */
+    val remoteAudioTrack: Flow<AudioTrack?>
+
+    /**
      * Releases any held resources (local or remote streams).
      */
     fun release()
@@ -62,6 +68,11 @@ internal class MediaStreamManagerImpl(
         .mapNotNull { stream -> stream?.tracks }
         .map { tracks -> tracks.firstOrNull { it.kind == MediaStreamTrackKind.Video } }
         .map { it as? VideoTrack }
+
+    override val remoteAudioTrack = _remoteStream
+        .mapNotNull { stream -> stream?.tracks }
+        .map { tracks -> tracks.firstOrNull { it.kind == MediaStreamTrackKind.Audio } }
+        .map { it as? AudioTrack }
 
     override suspend fun initializeLocalAudio(): MediaStream {
         logger.i(TAG) { "Initializing local audio stream..." }
