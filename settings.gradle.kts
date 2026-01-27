@@ -31,6 +31,7 @@ dependencyResolutionManagement {
 }
 
 include(":apps:android")
+include(":apps:web")
 
 include(":packages:app")
 
