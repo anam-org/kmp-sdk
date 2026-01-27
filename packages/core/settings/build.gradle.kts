@@ -22,6 +22,12 @@ kotlin {
             dependencies {
             }
         }
+
+        wasmJsMain {
+            dependencies {
+                implementation(libs.kotlinx.browser)
+            }
+        }
     }
 
     androidLibrary {
