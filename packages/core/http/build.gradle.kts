@@ -27,6 +27,12 @@ kotlin {
             dependencies {
             }
         }
+
+        wasmJsMain {
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
+        }
     }
 
     androidLibrary {
