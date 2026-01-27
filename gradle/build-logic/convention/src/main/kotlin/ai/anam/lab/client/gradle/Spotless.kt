@@ -22,12 +22,12 @@ fun Project.configureSpotless() {
                     mapOf(
                         "compose_allowed_composition_locals" to "LocalPreferences,LocalViewModelGraphProvider",
                         "compose_allowed_lambda_parameter_names" to "onFirstFrameRendered",
-                    )
+                    ),
                 )
                 .customRuleSets(
                     listOf(
-                        "io.nlopez.compose.rules:ktlint:$composeRulesVersion"
-                    )
+                        "io.nlopez.compose.rules:ktlint:$composeRulesVersion",
+                    ),
                 )
         }
 

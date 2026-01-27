@@ -6,8 +6,8 @@ package ai.anam.lab.client.gradle
 import kotlin.jvm.optionals.getOrNull
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 class ComposeConventionPlugin : Plugin<Project> {
@@ -32,6 +32,7 @@ class ComposeConventionPlugin : Plugin<Project> {
                             implementation(platformBom)
                         }
                     }
+
                 else ->
                     dependencies {
                         add("implementation", platformBom)

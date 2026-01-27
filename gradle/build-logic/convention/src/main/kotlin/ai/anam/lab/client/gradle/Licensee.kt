@@ -44,7 +44,9 @@ private fun Project.configureLicenseeReportExport() {
         extensions.configure<LibraryAndroidComponentsExtension> {
             onVariants { variant ->
                 val variantName = variant.name
-                val capitalizedVariantName = variantName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+                val capitalizedVariantName = variantName.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase() else it.toString()
+                }
                 val licenseeTaskName = "licenseeAndroid$capitalizedVariantName"
                 val copyTaskName = "copyLicenseeReportAndroid$capitalizedVariantName"
 
@@ -78,7 +80,9 @@ private fun Project.configureLicenseeReportExport() {
             targets.withType<KotlinNativeTarget> {
                 if (konanTarget.family.isAppleFamily) {
                     val targetName = this.name
-                    val capitalizedTargetName = targetName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+                    val capitalizedTargetName = targetName.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase() else it.toString()
+                    }
                     val licenseeTaskName = "licensee$capitalizedTargetName"
                     val copyTaskName = "copyLicenseeReport$capitalizedTargetName"
 

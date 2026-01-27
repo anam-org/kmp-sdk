@@ -27,7 +27,8 @@ fun Project.configureCompose() {
     }
 }
 
-private fun Project.application(action: ApplicationExtension.() -> Unit) = extensions.configure<ApplicationExtension>(action)
+private fun Project.application(action: ApplicationExtension.() -> Unit) =
+    extensions.configure<ApplicationExtension>(action)
 
 /**
  * Extension function to determine if one of the many Android plugin's has been applied to the Project.
@@ -41,4 +42,3 @@ internal fun PluginManager.hasAndroidPlugin(): Boolean = listOf(
  * Extension function to determine if KMP's androidTarget is required.
  */
 internal fun PluginManager.isAndroidTargetRequired(): Boolean = hasPlugin("com.android.application")
-
