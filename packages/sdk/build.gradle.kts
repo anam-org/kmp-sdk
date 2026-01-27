@@ -101,8 +101,17 @@ kotlin {
             }
         }
 
-        // Configure iosTest to depend on nonAndroidTest
+        wasmJsMain {
+            dependsOn(nonAndroidMain)
+            dependencies {
+                implementation(libs.ktor.client.js)
+                implementation(libs.kotlinx.browser)
+            }
+        }
+
+        // Configure iosTest/wasmJsTest to depend on nonAndroidTest
         iosTest.get().dependsOn(nonAndroidTest)
+        wasmJsTest.get().dependsOn(nonAndroidTest)
     }
 
     androidLibrary {
