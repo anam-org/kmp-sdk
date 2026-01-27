@@ -6,6 +6,7 @@ package ai.anam.lab.client.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon
@@ -26,6 +27,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
                         androidTarget()
                     }
                 }
+
                 else -> {
                     jvm()
                 }
@@ -33,6 +35,11 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
 
             iosArm64()
             iosSimulatorArm64()
+
+            @OptIn(ExperimentalWasmDsl::class)
+            wasmJs {
+                browser()
+            }
 
             compilerOptions {
                 // https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-expect-actual.html#expected-and-actual-classes
