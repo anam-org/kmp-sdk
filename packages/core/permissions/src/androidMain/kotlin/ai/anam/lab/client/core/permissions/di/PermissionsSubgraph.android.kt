@@ -1,5 +1,6 @@
 package ai.anam.lab.client.core.permissions.di
 
+import ai.anam.lab.client.core.permissions.PlatformPermissionsController
 import android.content.Context
 import dev.icerock.moko.permissions.PermissionsController
 import dev.zacsweers.metro.AppScope
@@ -15,4 +16,8 @@ actual interface PermissionsSubgraph {
     fun providesPermissionsController(context: Context): PermissionsController = PermissionsController(
         applicationContext = context,
     )
+
+    @Provides
+    fun providesPlatformPermissionsController(controller: PermissionsController): PlatformPermissionsController =
+        MokoPlatformPermissionsController(controller)
 }

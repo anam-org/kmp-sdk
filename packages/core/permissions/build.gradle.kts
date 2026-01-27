@@ -12,8 +12,6 @@ kotlin {
         commonMain {
             dependencies {
                 api(libs.compose.runtime)
-                implementation(libs.moko.permissions.core)
-                implementation(libs.moko.permissions.microphone)
             }
         }
 
@@ -24,8 +22,17 @@ kotlin {
 
         androidMain {
             dependencies {
+                implementation(libs.moko.permissions.core)
+                implementation(libs.moko.permissions.microphone)
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.lifecycle.runtimeCompose)
+            }
+        }
+
+        iosMain {
+            dependencies {
+                implementation(libs.moko.permissions.core)
+                implementation(libs.moko.permissions.microphone)
             }
         }
     }
