@@ -8,8 +8,6 @@ import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 
 /**
@@ -21,15 +19,15 @@ interface CoroutinesSubgraph {
 
     @Dispatcher(DispatcherType.Main)
     @Provides
-    fun providesMainDispatcher(): CoroutineDispatcher = Dispatchers.Main
+    fun providesMainDispatcher(): CoroutineDispatcher = DefaultDispatchers.Main
 
     @Dispatcher(DispatcherType.IO)
     @Provides
-    fun providesIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
+    fun providesIoDispatcher(): CoroutineDispatcher = DefaultDispatchers.IO
 
     @Dispatcher(DispatcherType.Default)
     @Provides
-    fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+    fun providesDefaultDispatcher(): CoroutineDispatcher = DefaultDispatchers.Default
 
     /**
      * The main application scope. This should ideally not be used frequently, but when required, can be injected.
