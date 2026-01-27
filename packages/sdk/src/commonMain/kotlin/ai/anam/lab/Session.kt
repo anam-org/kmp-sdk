@@ -6,6 +6,8 @@ import ai.anam.lab.webrtc.MediaStreamManager
 import ai.anam.lab.webrtc.MessagingClient
 import ai.anam.lab.webrtc.SignallingClient
 import ai.anam.lab.webrtc.StreamingClient
+import com.shepeliev.webrtckmp.AudioTrack
+import com.shepeliev.webrtckmp.VideoTrack
 import kotlin.time.Clock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -14,10 +16,17 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
+
+/**
+ * Internal data class that represents the two remote Tracks from the Persona.
+ */
+internal data class SessionTracks(val audioTrack: AudioTrack, val videoTrack: VideoTrack)
 
 /**
  * This class represents an active session with the Anam SDK. The call to [start] will begin the session, and its
@@ -51,11 +60,16 @@ public class Session internal constructor(
         }
 
     /**
-     * Access to the VideoTrack that the Persona will be rendered too. This is internal, to allow it to be accessed by
-     * the [AnamVideo] component. The [Session] is provided to the [AnamVideo] Composable, which will be able to access
-     * this track to render to the local Surface.
+     * Access to the AudioTrack and VideoTrack that the Persona will be rendered using. This is internal, to allow it to
+     * be accessed by the [AnamVideo] component. The [Session] is provided to the [AnamVideo] Composable, which will be
+     * able to access the video track to render to the local Surface.
      */
-    internal val remoteVideoTrack = mediaStreamManager.remoteVideoTrack
+    internal val tracks = combine(
+        mediaStreamManager.remoteAudioTrack.filterNotNull(),
+        mediaStreamManager.remoteVideoTrack.filterNotNull(),
+    ) { (audio, video) ->
+        SessionTracks(audio as AudioTrack, video as VideoTrack)
+    }
 
     // A local flow of events that the session can emit itself (e.g. first video frame rendered).
     private val localEvents = MutableSharedFlow<SessionEvent>(extraBufferCapacity = 1)

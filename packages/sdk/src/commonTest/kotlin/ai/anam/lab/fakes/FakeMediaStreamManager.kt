@@ -1,6 +1,7 @@
 package ai.anam.lab.fakes
 
 import ai.anam.lab.webrtc.MediaStreamManager
+import com.shepeliev.webrtckmp.AudioTrack
 import com.shepeliev.webrtckmp.MediaStream
 import com.shepeliev.webrtckmp.VideoTrack
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,9 @@ import kotlinx.coroutines.flow.asStateFlow
 internal class FakeMediaStreamManager : MediaStreamManager {
     private val _remoteVideoTrack = MutableStateFlow<VideoTrack?>(null)
     override val remoteVideoTrack: Flow<VideoTrack?> = _remoteVideoTrack.asStateFlow()
+
+    private val _remoteAudioTrack = MutableStateFlow<AudioTrack?>(null)
+    override val remoteAudioTrack: Flow<AudioTrack?> = _remoteAudioTrack.asStateFlow()
 
     override var isLocalAudioMuted: Boolean = false
 

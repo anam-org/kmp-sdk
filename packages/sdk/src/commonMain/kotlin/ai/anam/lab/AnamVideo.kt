@@ -6,13 +6,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import com.shepeliev.webrtckmp.VideoTrack
 
 @Composable
 public fun AnamVideo(session: Session?, modifier: Modifier = Modifier, onSessionFirstRender: () -> Unit = {}) {
-    val state = session?.remoteVideoTrack?.collectAsState(null)
+    val state = session?.tracks?.collectAsState(null)
     AnamVideo(
-        videoTrack = state?.value,
+        tracks = state?.value,
         onFirstFrameRendered = {
             session?.onFirstFrameRendered()
             onSessionFirstRender()
@@ -22,11 +21,11 @@ public fun AnamVideo(session: Session?, modifier: Modifier = Modifier, onSession
 }
 
 @Composable
-internal fun AnamVideo(videoTrack: VideoTrack?, onFirstFrameRendered: () -> Unit, modifier: Modifier = Modifier) {
+internal fun AnamVideo(tracks: SessionTracks?, onFirstFrameRendered: () -> Unit, modifier: Modifier = Modifier) {
     Box(modifier = modifier) {
-        if (videoTrack != null) {
+        if (tracks != null) {
             VideoSession(
-                videoTrack = videoTrack,
+                tracks = tracks,
                 onFirstFrameRendered = onFirstFrameRendered,
                 modifier = Modifier.fillMaxSize(),
             )
