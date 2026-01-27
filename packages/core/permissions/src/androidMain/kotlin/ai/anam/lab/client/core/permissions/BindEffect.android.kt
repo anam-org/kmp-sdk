@@ -18,6 +18,6 @@ actual fun BindEffect(permissionsManager: PermissionsManager) {
             "$context context is not instance of ComponentActivity"
         }
 
-        permissionsManager.controller.bind(activity)
+        (permissionsManager.getBindTarget() as? dev.icerock.moko.permissions.PermissionsController)?.bind(activity)
     }
 }
