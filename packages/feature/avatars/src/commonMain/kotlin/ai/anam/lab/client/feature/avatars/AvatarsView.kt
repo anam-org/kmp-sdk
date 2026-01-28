@@ -5,7 +5,6 @@ import ai.anam.lab.client.core.datetime.toFormattedDateString
 import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.viewmodel.metroViewModel
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -51,13 +50,21 @@ fun AvatarsView(
         paginationState = viewState.items,
         modifier = modifier.fillMaxSize(),
         columns = columns,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         itemsIndexed(
             viewState.items.allItems!!,
         ) { _, item ->
-            Avatar(avatar = item, isSelected = viewState.selectedId == item.id, onAvatarSelect = onAvatarSelect)
+            Avatar(
+                avatar = item,
+                isSelected = viewState.selectedId == item.id,
+                onAvatarSelect = onAvatarSelect,
+                // Move grid spacing into the item itself so click/selection visuals include it.
+                modifier =
+                    Modifier.padding(
+                        horizontal = 4.dp,
+                        vertical = 8.dp,
+                    ),
+            )
         }
     }
 }
