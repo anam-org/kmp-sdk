@@ -8,7 +8,7 @@ This is the Anam AI Kotlin Multiplatform SDK. It's an experimental SDK (not offi
 
 The Anam AI Kotlin Multiplatform SDK is designed to help developers integrate Anam AI's digital personas into their Kotlin Multiplatform applications. The SDK provides a set of APIs and utilities to make it easier to create, manage, and interact with digital personas in a realtime environment.
 
-The project includes an example Multiplatform application that targets both Android and iOS, built with Compose Multiplatform.
+The project includes an example Multiplatform application that targets Android, iOS, and Web (wasmJs), built with Compose Multiplatform.
 
 **⚠️ Experimental Disclaimer**: This SDK is experimental and intended for demonstration purposes. While we allow people to use this code in production, they do so at their own risk. We welcome and accept PRs for any bugs or improvements.
 
@@ -62,6 +62,7 @@ brew install cocoapods
   ```bash
   brew install --cask android-commandlinetools
   ```
+- **Modern web browser** (for Web/wasmJs): Chrome, Firefox, Safari, or Edge with WebAssembly support.
 
 ## Project Structure
 
@@ -69,7 +70,8 @@ brew install cocoapods
 Anam/
 ├── apps/
 │   ├── android/          # Android application entry point
-│   └── ios/              # iOS application entry point (SwiftUI)
+│   ├── ios/              # iOS application entry point (SwiftUI)
+│   └── web/              # Web application entry point (Compose for Web, wasmJs)
 │
 ├── packages/
 │   ├── app/              # Shared Compose Multiplatform UI module
@@ -98,7 +100,7 @@ Anam/
 
 ### API Token Setup
 
-In order to run the mobile app, you are required to:
+In order to run the applications, you are required to:
 
 1. **Generate an API token** via [Anam Labs](https://anam.ai) (or your Anam Labs instance)
 
@@ -174,6 +176,20 @@ In order to run the mobile app, you are required to:
 # Build from command line (requires Xcode)
 xcodebuild -workspace apps/ios/App.xcworkspace -scheme App -configuration Debug
 ```
+
+### Web (wasmJs)
+
+A modern web browser with WebAssembly support is required. No Xcode, CocoaPods, or Android SDK needed.
+
+```bash
+# Run development server (opens in browser)
+./gradlew :apps:web:wasmJsBrowserDevelopmentRun
+
+# Build production distribution (output in apps/web/build/dist/wasmJs/productionExecutable/)
+./gradlew :apps:web:wasmJsBrowserDistribution
+```
+
+The API token from [API Token Setup](#api-token-setup) is read from `gradle.properties` or `local.properties` when running the web app.
 
 ## Tech Stack
 
