@@ -47,7 +47,7 @@ ktor-client-ws = { module = "io.ktor:ktor-client-websockets", version.ref = "kto
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktorfit = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfit" }
 webrtc = { module = "com.shepeliev:webrtc-kmp", version.ref = "webrtc" }
-kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = "0.3" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = "0.5.0" }
 jwt = { module = "com.appstractive:jwt-kt", version = "1.2.1" }
 assertk = { module = "com.willowtreeapps.assertk:assertk", version = "0.28.1" }
 turbine = { module = "app.cash.turbine:turbine", version = "1.2.1" }
