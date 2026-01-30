@@ -7,6 +7,7 @@ import ai.anam.lab.client.core.viewmodel.metroViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import io.github.ahmad_hamwi.compose.pagination.PaginatedLazyVerticalGrid
@@ -45,19 +47,29 @@ fun AvatarsView(
     viewState: AvatarsViewState,
     onAvatarSelect: (String, String) -> Unit,
     modifier: Modifier = Modifier,
-    columns: GridCells = GridCells.Fixed(2),
+    minColumns: Int = 2,
+    maxColumns: Int = 4,
+    minColumnWidth: Dp = 160.dp,
 ) {
-    PaginatedLazyVerticalGrid(
-        paginationState = viewState.items,
-        modifier = modifier.fillMaxSize(),
-        columns = columns,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        itemsIndexed(
-            viewState.items.allItems!!,
-        ) { _, item ->
-            Avatar(avatar = item, isSelected = viewState.selectedId == item.id, onAvatarSelect = onAvatarSelect)
+    BoxWithConstraints(modifier = modifier) {
+        val columnCount = (maxWidth / minColumnWidth).toInt().coerceIn(minColumns, maxColumns)
+
+        PaginatedLazyVerticalGrid(
+            paginationState = viewState.items,
+            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Fixed(columnCount),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            itemsIndexed(
+                viewState.items.allItems!!,
+            ) { _, item ->
+                Avatar(
+                    avatar = item,
+                    isSelected = viewState.selectedId == item.id,
+                    onAvatarSelect = onAvatarSelect,
+                )
+            }
         }
     }
 }
@@ -78,14 +90,15 @@ fun Avatar(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(4f / 3f)
-                .clip(RoundedCornerShape(8.dp))
                 .padding(bottom = 4.dp),
         ) {
             AsyncImage(
                 model = avatar.imageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp)),
             )
 
             if (isSelected) {

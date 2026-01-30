@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -27,7 +27,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -36,7 +38,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 
@@ -107,35 +111,16 @@ fun HomeView(viewState: HomeViewState, onTabSelect: (Int) -> Unit, modifier: Mod
     ) {
         SessionView(
             modifier = Modifier
-                .aspectRatio(16f / 9f)
-                .fillMaxSize()
+                .widthIn(max = 500.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.secondary),
         )
 
-        SecondaryScrollableTabRow(
-            selectedTabIndex = viewState.selectedIndex,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            viewState.tabs.forEachIndexed { index, tab ->
-                Tab(
-                    selected = viewState.selectedIndex == index,
-                    onClick = { onTabSelect(index) },
-                    modifier = Modifier.padding(8.dp),
-                    content = {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(tab.name),
-                                modifier = Modifier.padding(8.dp),
-                            )
-                        }
-                    },
-                )
-            }
-        }
+        HomeTabs(
+            tabs = viewState.tabs,
+            selectedIndex = viewState.selectedIndex,
+            onTabSelect = onTabSelect,
+        )
 
         Box(modifier = Modifier.padding(top = 16.dp)) {
             val selected = viewState.tabs[viewState.selectedIndex]
@@ -145,6 +130,67 @@ fun HomeView(viewState: HomeViewState, onTabSelect: (Int) -> Unit, modifier: Mod
                 Tab.Voices -> VoicesView(modifier = Modifier.fillMaxWidth())
                 Tab.Llms -> LlmsView(modifier = Modifier.fillMaxWidth())
             }
+        }
+    }
+}
+
+private enum class HomeTabsSlot { Measure, Scrollable, Centered }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeTabs(tabs: List<Tab>, selectedIndex: Int, onTabSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val tabContent: @Composable () -> Unit = {
+        tabs.forEachIndexed { index, tab ->
+            Tab(
+                selected = selectedIndex == index,
+                onClick = { onTabSelect(index) },
+                modifier = Modifier.padding(8.dp),
+                content = {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(tab.name),
+                            modifier = Modifier.padding(8.dp),
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    SubcomposeLayout(modifier = modifier.fillMaxWidth()) { constraints ->
+        // Measure the tabs in a Row with unbounded width to get their natural total width
+        val tabsWidth = subcompose(HomeTabsSlot.Measure) {
+            Row { tabContent() }
+        }.first().measure(Constraints()).width
+
+        val availableWidth = constraints.maxWidth
+        val edgePadding = TabRowDefaults.ScrollableTabRowEdgeStartPadding.roundToPx()
+        val tabsFit = tabsWidth + edgePadding <= availableWidth
+
+        // Choose the appropriate tab row based on whether tabs fit
+        val tabRowPlaceables = if (tabsFit) {
+            subcompose(HomeTabsSlot.Centered) {
+                SecondaryTabRow(selectedTabIndex = selectedIndex) {
+                    tabContent()
+                }
+            }
+        } else {
+            subcompose(HomeTabsSlot.Scrollable) {
+                SecondaryScrollableTabRow(
+                    selectedTabIndex = selectedIndex,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    tabContent()
+                }
+            }
+        }.map { it.measure(constraints) }
+
+        val height = tabRowPlaceables.maxOfOrNull { it.height } ?: 0
+        layout(availableWidth, height) {
+            tabRowPlaceables.forEach { it.placeRelative(0, 0) }
         }
     }
 }

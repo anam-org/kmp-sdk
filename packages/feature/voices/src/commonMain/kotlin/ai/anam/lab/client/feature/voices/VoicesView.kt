@@ -65,6 +65,7 @@ fun Voice(voice: Voice, isSelected: Boolean, onVoiceSelect: (String) -> Unit, mo
             sampleUrl = voice.sampleUrl,
             modifier = Modifier
                 .size(24.dp)
+                .padding(start = 4.dp, top = 4.dp)
                 .align(Alignment.Top),
         )
 
