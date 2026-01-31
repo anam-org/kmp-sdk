@@ -3,7 +3,6 @@ package ai.anam.lab.client.core
 import ai.anam.lab.client.core.api.di.ApiSubgraph
 import ai.anam.lab.client.core.client.di.ClientSubgraph
 import ai.anam.lab.client.core.coroutines.CoroutinesSubgraph
-import ai.anam.lab.client.core.di.ViewModelKey
 import ai.anam.lab.client.core.http.di.HttpSubgraph
 import ai.anam.lab.client.core.logging.di.LoggingSubgraph
 import ai.anam.lab.client.core.navigation.FeatureContent
@@ -22,22 +21,19 @@ import ai.anam.lab.client.domain.data.di.DomainDataSubgraph
 import ai.anam.lab.client.domain.notifications.di.DomainNotificationsSubgraph
 import ai.anam.lab.client.domain.permissions.di.DomainPermissionsSubgraph
 import ai.anam.lab.client.domain.session.di.DomainSessionSubgraph
-import ai.anam.lab.client.feature.avatars.AvatarsViewModel
+import ai.anam.lab.client.feature.avatars.AvatarsFeatureViewSubgraph
+import ai.anam.lab.client.feature.home.HomeFeatureViewSubgraph
 import ai.anam.lab.client.feature.home.HomeScreen
-import ai.anam.lab.client.feature.home.HomeViewModel
+import ai.anam.lab.client.feature.licenses.LicensesFeatureViewSubgraph
 import ai.anam.lab.client.feature.licenses.LicensesScreen
-import ai.anam.lab.client.feature.licenses.LicensesViewModel
-import ai.anam.lab.client.feature.llms.LlmsViewModel
-import ai.anam.lab.client.feature.messages.MessagesViewModel
-import ai.anam.lab.client.feature.notifications.NotificationsViewModel
-import ai.anam.lab.client.feature.session.SessionViewModel
+import ai.anam.lab.client.feature.llms.LlmsFeatureViewSubgraph
+import ai.anam.lab.client.feature.messages.MessagesFeatureViewSubgraph
+import ai.anam.lab.client.feature.notifications.NotificationsFeatureViewSubgraph
+import ai.anam.lab.client.feature.session.SessionFeatureViewSubgraph
+import ai.anam.lab.client.feature.settings.SettingsFeatureViewSubgraph
 import ai.anam.lab.client.feature.settings.SettingsScreen
-import ai.anam.lab.client.feature.settings.SettingsViewModel
-import ai.anam.lab.client.feature.voices.VoicesViewModel
-import androidx.lifecycle.ViewModel
+import ai.anam.lab.client.feature.voices.VoicesFeatureViewSubgraph
 import dev.zacsweers.metro.Binds
-import dev.zacsweers.metro.IntoMap
-import dev.zacsweers.metro.Provider
 import dev.zacsweers.metro.Provides
 
 /**
@@ -49,6 +45,10 @@ import dev.zacsweers.metro.Provides
  *
  * Platform-specific bindings (e.g. PlatformContext) are added by IosAppManualBindings and
  * WasmAppManualBindings in their respective source sets.
+ *
+ * Note: On Android, ViewModel bindings are provided via per-feature subgraphs using @ContributesTo.
+ * On iOS/wasmJs, we extend those same subgraph interfaces here to inherit the bindings, since Metro
+ * cannot auto-discover @ContributesTo contributions on those platforms.
  */
 interface ClientAppManualBindings :
     LoggingSubgraph,
@@ -63,7 +63,16 @@ interface ClientAppManualBindings :
     DomainDataSubgraph,
     DomainNotificationsSubgraph,
     DomainSessionSubgraph,
-    DomainPermissionsSubgraph {
+    DomainPermissionsSubgraph,
+    HomeFeatureViewSubgraph,
+    AvatarsFeatureViewSubgraph,
+    VoicesFeatureViewSubgraph,
+    LlmsFeatureViewSubgraph,
+    SettingsFeatureViewSubgraph,
+    SessionFeatureViewSubgraph,
+    MessagesFeatureViewSubgraph,
+    NotificationsFeatureViewSubgraph,
+    LicensesFeatureViewSubgraph {
 
     @Binds
     fun AnamPreferencesImpl.bind(): AnamPreferences
@@ -80,49 +89,4 @@ interface ClientAppManualBindings :
         FeatureRoute.Settings to { _ -> SettingsScreen() },
         FeatureRoute.Licenses to { _ -> LicensesScreen() },
     )
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(HomeViewModel::class)
-    fun providesHomeViewModel(provider: Provider<HomeViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(SessionViewModel::class)
-    fun providesSessionViewModel(provider: Provider<SessionViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(MessagesViewModel::class)
-    fun providesMessagesViewModel(provider: Provider<MessagesViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(AvatarsViewModel::class)
-    fun providesAvatarsViewModel(provider: Provider<AvatarsViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(VoicesViewModel::class)
-    fun providesVoicesViewModel(provider: Provider<VoicesViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(LlmsViewModel::class)
-    fun providesLlmsViewModel(provider: Provider<LlmsViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(SettingsViewModel::class)
-    fun providesSettingsViewModel(provider: Provider<SettingsViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(LicensesViewModel::class)
-    fun providesLicensesViewModel(provider: Provider<LicensesViewModel>): ViewModel = provider()
-
-    @Provides
-    @IntoMap
-    @ViewModelKey(NotificationsViewModel::class)
-    fun providesNotificationsViewModel(provider: Provider<NotificationsViewModel>): ViewModel = provider()
 }
