@@ -3,11 +3,11 @@ package ai.anam.lab.client.feature.session
 import ai.anam.lab.Session
 import ai.anam.lab.client.core.common.onLeft
 import ai.anam.lab.client.core.common.onRight
-import ai.anam.lab.client.core.di.ViewModelKey
-import ai.anam.lab.client.core.di.ViewModelScope
 import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.permissions.PermissionResult
 import ai.anam.lab.client.core.permissions.PermissionsManager
+import ai.anam.lab.client.core.viewmodel.BaseViewModel
+import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarInteractor
 import ai.anam.lab.client.domain.permissions.RequestAudioPermissionInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionInteractor
@@ -15,17 +15,11 @@ import ai.anam.lab.client.domain.session.ObserveActiveSessionMuteStateInteractor
 import ai.anam.lab.client.domain.session.StartSessionWithCurrentPersonaInteractor
 import ai.anam.lab.client.domain.session.StopSessionInteractor
 import ai.anam.lab.client.domain.session.ToggleActiveSessionMuteStateInteractor
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @Inject
-@ViewModelKey(SessionViewModel::class)
-@ContributesIntoMap(ViewModelScope::class)
 class SessionViewModel(
     private val observeActiveSessionInteractor: ObserveActiveSessionInteractor,
     private val observeCurrentAvatarInteractor: ObserveCurrentAvatarInteractor,
@@ -36,25 +30,18 @@ class SessionViewModel(
     private val permissionsManager: PermissionsManager,
     private val requestAudioPermissionInteractor: RequestAudioPermissionInteractor,
     private val logger: Logger,
-) : ViewModel() {
-
-    private val _state = MutableStateFlow(SessionViewState(permissionsManager = permissionsManager))
-    val state = _state.asStateFlow()
+) : BaseViewModel<SessionViewState>(SessionViewState(permissionsManager = permissionsManager)) {
 
     init {
         viewModelScope.launch {
             observeActiveSessionInteractor().collect { session ->
                 logger.i(TAG) { "Session change detected: ${session?.id}" }
-                val state = if (session == null) {
+                val sessionState = if (session == null) {
                     SessionState.None
                 } else {
                     SessionState.Started(session)
                 }
-                val newState = _state.value.copy(
-                    sessionState = state,
-                )
-
-                _state.value = newState
+                setState { copy(sessionState = sessionState) }
             }
         }
 
@@ -62,10 +49,12 @@ class SessionViewModel(
             observeCurrentAvatarInteractor().collect { result ->
                 result.onRight { avatar ->
                     logger.i(TAG) { "Fetched avatar: $avatar" }
-                    _state.value = _state.value.copy(
-                        imageUrl = avatar.imageUrl,
-                        videoUrl = avatar.videoUrl,
-                    )
+                    setState {
+                        copy(
+                            imageUrl = avatar.imageUrl,
+                            videoUrl = avatar.videoUrl,
+                        )
+                    }
                 }.onLeft { error ->
                     logger.e(TAG) { "Failed to fetch avatar: $error" }
                 }
@@ -74,7 +63,7 @@ class SessionViewModel(
 
         viewModelScope.launch {
             observeActiveSessionMuteStateInteractor().collect { isMute ->
-                _state.value = _state.value.copy(isAudioMute = isMute)
+                setState { copy(isAudioMute = isMute) }
             }
         }
     }
@@ -88,16 +77,14 @@ class SessionViewModel(
                 return@launch
             }
 
-            val newState = _state.value.copy(sessionState = SessionState.Loading)
-            _state.value = newState
+            setState { copy(sessionState = SessionState.Loading) }
             startSessionInteractor()
         }
     }
 
     fun stopSession() {
         logger.i(TAG) { "Stopping session" }
-        val newState = _state.value.copy(sessionState = SessionState.None)
-        _state.value = newState
+        setState { copy(sessionState = SessionState.None) }
 
         viewModelScope.launch {
             stopSessionInteractor()
@@ -122,7 +109,7 @@ data class SessionViewState(
     val imageUrl: String? = null,
     val videoUrl: String? = null,
     val isAudioMute: Boolean = false,
-)
+) : ViewState
 
 sealed interface SessionState {
     data object None : SessionState

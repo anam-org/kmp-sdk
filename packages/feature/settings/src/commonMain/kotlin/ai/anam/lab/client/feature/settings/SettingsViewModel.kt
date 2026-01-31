@@ -1,37 +1,28 @@
 package ai.anam.lab.client.feature.settings
 
-import ai.anam.lab.client.core.di.ViewModelKey
-import ai.anam.lab.client.core.di.ViewModelScope
 import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.navigation.FeatureRoute
 import ai.anam.lab.client.core.navigation.Navigator
 import ai.anam.lab.client.core.settings.AnamPreferences
 import ai.anam.lab.client.core.settings.Theme
-import androidx.lifecycle.ViewModel
+import ai.anam.lab.client.core.viewmodel.BaseViewModel
+import ai.anam.lab.client.core.viewmodel.ViewState
 import androidx.lifecycle.viewModelScope
-import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @Inject
-@ViewModelKey(SettingsViewModel::class)
-@ContributesIntoMap(ViewModelScope::class)
 class SettingsViewModel(
     private val preferences: AnamPreferences,
     private val logger: Logger,
     private val navigator: Navigator,
-) : ViewModel() {
-
-    private val _state = MutableStateFlow(SettingsViewState())
-    val state = _state.asStateFlow()
+) : BaseViewModel<SettingsViewState>(SettingsViewState()) {
 
     init {
         viewModelScope.launch {
             preferences.theme.flow.collect { theme ->
                 logger.i(TAG) { "Theme updated: $theme" }
-                _state.value = _state.value.copy(theme = theme)
+                setState { copy(theme = theme) }
             }
         }
     }
@@ -60,4 +51,4 @@ class SettingsViewModel(
     }
 }
 
-data class SettingsViewState(val theme: Theme = Theme.SYSTEM)
+data class SettingsViewState(val theme: Theme = Theme.SYSTEM) : ViewState

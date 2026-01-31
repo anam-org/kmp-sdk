@@ -1,30 +1,21 @@
 package ai.anam.lab.client.feature.licenses
 
-import ai.anam.lab.client.core.di.ViewModelKey
-import ai.anam.lab.client.core.di.ViewModelScope
 import ai.anam.lab.client.core.licenses.LicenseItem
 import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.navigation.Navigator
+import ai.anam.lab.client.core.viewmodel.BaseViewModel
+import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.data.FetchLicensesInteractor
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @Inject
-@ViewModelKey(LicensesViewModel::class)
-@ContributesIntoMap(ViewModelScope::class)
 class LicensesViewModel(
     private val fetchLicenses: FetchLicensesInteractor,
     private val logger: Logger,
     private val navigator: Navigator,
-) : ViewModel() {
-
-    private val _state = MutableStateFlow(LicensesViewState())
-    val state = _state.asStateFlow()
+) : BaseViewModel<LicensesViewState>(LicensesViewState()) {
 
     init {
         viewModelScope.launch {
@@ -40,7 +31,7 @@ class LicensesViewModel(
                     }
                     .sortedBy { it.id }
 
-                _state.value = _state.value.copy(licenses = licenses)
+                setState { copy(licenses = licenses) }
             } catch (e: Exception) {
                 logger.e(TAG, e) { "Failed to fetch licenses" }
             }
@@ -57,6 +48,6 @@ class LicensesViewModel(
     }
 }
 
-data class LicensesViewState(val licenses: List<LicenseGroup> = emptyList())
+data class LicensesViewState(val licenses: List<LicenseGroup> = emptyList()) : ViewState
 
 data class LicenseGroup(val id: String, val artifacts: List<LicenseItem>)
