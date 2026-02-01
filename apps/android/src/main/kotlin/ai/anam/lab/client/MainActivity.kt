@@ -3,10 +3,6 @@ package ai.anam.lab.client
 import ai.anam.lab.client.core.App
 import ai.anam.lab.client.core.ClientAppObjectGraph
 import ai.anam.lab.client.core.di.ApplicationObjectGraphHolder
-import ai.anam.lab.client.core.navigation.FeatureRoute
-import ai.anam.lab.client.feature.home.HomeScreen
-import ai.anam.lab.client.feature.licenses.LicensesScreen
-import ai.anam.lab.client.feature.settings.SettingsScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,12 +22,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             App(
-                // TODO: Need to work out why this doesn't work when being built via the DI graph.
-                features = mapOf(
-                    FeatureRoute.Home to { HomeScreen() },
-                    FeatureRoute.Settings to { SettingsScreen() },
-                    FeatureRoute.Licenses to { LicensesScreen() },
-                ),
+                features = graph.features,
                 viewModelGraphProvider = graph.viewModelGraphProvider,
                 preferences = graph.preferences,
                 imageLoader = graph.imageLoader,

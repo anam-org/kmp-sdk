@@ -4,6 +4,8 @@ import ai.anam.lab.PlatformContext
 import ai.anam.lab.client.core.di.ApplicationObjectGraphHolder
 import ai.anam.lab.client.core.di.BaseApplicationObjectGraph
 import ai.anam.lab.client.core.logging.Logger
+import ai.anam.lab.client.core.navigation.FeatureContent
+import ai.anam.lab.client.core.navigation.FeatureRoute
 import ai.anam.lab.client.core.navigation.Navigator
 import ai.anam.lab.client.core.settings.AnamPreferences
 import ai.anam.lab.client.core.viewmodel.ViewModelGraphProvider
@@ -34,6 +36,7 @@ actual interface ClientAppObjectGraph :
     val viewModelGraphProvider: ViewModelGraphProvider
     val preferences: AnamPreferences
     val imageLoader: ImageLoader
+    val features: Map<FeatureRoute, FeatureContent>
 }
 
 fun createClientAppObjectGraph(): ClientAppObjectGraph = createGraphFactory<ClientAppObjectGraph.Factory>()

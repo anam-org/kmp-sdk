@@ -6,6 +6,8 @@ import ai.anam.lab.client.core.coroutines.CoroutinesSubgraph
 import ai.anam.lab.client.core.di.ViewModelKey
 import ai.anam.lab.client.core.http.di.HttpSubgraph
 import ai.anam.lab.client.core.logging.di.LoggingSubgraph
+import ai.anam.lab.client.core.navigation.FeatureContent
+import ai.anam.lab.client.core.navigation.FeatureRoute
 import ai.anam.lab.client.core.navigation.Navigator
 import ai.anam.lab.client.core.navigation.NavigatorImpl
 import ai.anam.lab.client.core.notifications.di.NotificationsSubgraph
@@ -21,12 +23,15 @@ import ai.anam.lab.client.domain.notifications.di.DomainNotificationsSubgraph
 import ai.anam.lab.client.domain.permissions.di.DomainPermissionsSubgraph
 import ai.anam.lab.client.domain.session.di.DomainSessionSubgraph
 import ai.anam.lab.client.feature.avatars.AvatarsViewModel
+import ai.anam.lab.client.feature.home.HomeScreen
 import ai.anam.lab.client.feature.home.HomeViewModel
+import ai.anam.lab.client.feature.licenses.LicensesScreen
 import ai.anam.lab.client.feature.licenses.LicensesViewModel
 import ai.anam.lab.client.feature.llms.LlmsViewModel
 import ai.anam.lab.client.feature.messages.MessagesViewModel
 import ai.anam.lab.client.feature.notifications.NotificationsViewModel
 import ai.anam.lab.client.feature.session.SessionViewModel
+import ai.anam.lab.client.feature.settings.SettingsScreen
 import ai.anam.lab.client.feature.settings.SettingsViewModel
 import ai.anam.lab.client.feature.voices.VoicesViewModel
 import androidx.lifecycle.ViewModel
@@ -68,6 +73,13 @@ interface ClientAppManualBindings :
 
     @Binds
     fun NavigatorImpl.bind(): Navigator
+
+    @Provides
+    fun providesFeatures(): Map<FeatureRoute, FeatureContent> = mapOf(
+        FeatureRoute.Home to { _ -> HomeScreen() },
+        FeatureRoute.Settings to { _ -> SettingsScreen() },
+        FeatureRoute.Licenses to { _ -> LicensesScreen() },
+    )
 
     @Provides
     @IntoMap
