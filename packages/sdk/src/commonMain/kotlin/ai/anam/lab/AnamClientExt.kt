@@ -71,6 +71,7 @@ public data class PersonaConfig(
     val voiceId: String,
     val llmId: String?,
     val systemPrompt: String,
+    val maxSessionLengthSeconds: Int,
 )
 
 /**
@@ -82,4 +83,5 @@ private fun PersonaConfig.toApiPersonaConfig() = ApiPersonaConfig(
     voiceId = voiceId,
     llmId = llmId,
     systemPrompt = systemPrompt,
+    maxSessionLengthSeconds = maxSessionLengthSeconds,
 )

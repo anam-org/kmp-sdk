@@ -30,6 +30,8 @@ internal data class PersonaConfig(
     val llmId: String?,
     @SerialName("systemPrompt")
     val systemPrompt: String,
+    @SerialName("maxSessionLengthSeconds")
+    val maxSessionLengthSeconds: Int,
 )
 
 @Serializable

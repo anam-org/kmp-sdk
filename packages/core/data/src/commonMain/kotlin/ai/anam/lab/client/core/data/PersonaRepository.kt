@@ -28,6 +28,7 @@ class PersonaRepository(private val logger: Logger) {
     fun withVoice(id: String) = with { copy(voiceId = id) }
     fun withLlm(id: String) = with { copy(llmId = id) }
     fun withSystemPrompt(prompt: String) = with { copy(systemPrompt = prompt) }
+    fun withMaxSessionLengthSeconds(seconds: Int) = with { copy(maxSessionLengthSeconds = seconds) }
 
     private fun with(block: Persona.() -> Persona) {
         _current.value = _current.value.block().also {
@@ -46,6 +47,7 @@ class PersonaRepository(private val logger: Logger) {
             systemPrompt =
             "You are Cara, a helpful customer service representative. Be friendly and " +
                 "concise in your responses.",
+            maxSessionLengthSeconds = 600,
         )
     }
 }

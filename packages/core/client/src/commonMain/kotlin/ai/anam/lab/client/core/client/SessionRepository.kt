@@ -122,6 +122,7 @@ class SessionRepository(
         voiceId = voiceId,
         llmId = llmId,
         systemPrompt = systemPrompt,
+        maxSessionLengthSeconds = maxSessionLengthSeconds,
     )
 
     private companion object {

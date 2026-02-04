@@ -9,4 +9,5 @@ data class Persona(
     val voiceId: String,
     val llmId: String?,
     val systemPrompt: String,
+    val maxSessionLengthSeconds: Int,
 )
