@@ -3,6 +3,7 @@ package ai.anam.lab.client.core.client
 import ai.anam.lab.AnamClient
 import ai.anam.lab.PersonaConfig
 import ai.anam.lab.Session
+import ai.anam.lab.SessionEvent
 import ai.anam.lab.SessionOptions
 import ai.anam.lab.SessionResult
 import ai.anam.lab.client.core.auth.AuthRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 sealed interface SessionState {
@@ -37,7 +39,7 @@ class SessionRepository(
 
     private val _activeSession = MutableStateFlow<Session?>(null)
     val activeSession = _activeSession.asStateFlow()
-    private var actionSessionJob: Job? = null
+    private val actionSessionJobs = mutableListOf<Job>()
 
     private val _isAudioMute = MutableStateFlow(false)
     val isAudioMute: Flow<Boolean> = _isAudioMute.asStateFlow()
@@ -70,8 +72,18 @@ class SessionRepository(
                 _isAudioMute.value = session.isLocalAudioMuted
 
                 logger.i(TAG) { "Session created successfully: ${session.id}" }
-                actionSessionJob = coroutineScope.launch {
+                actionSessionJobs += coroutineScope.launch {
                     session.start()
+                }
+
+                // As well as starting the session, we should observe when it's disconnected. This could happen from
+                // ourselves, but also from a server side termination.
+                actionSessionJobs += coroutineScope.launch {
+                    session.events.collect { event ->
+                        if (event is SessionEvent.ConnectionClosed) {
+                            cleanupSession()
+                        }
+                    }
                 }
 
                 SessionState.Success
@@ -88,14 +100,19 @@ class SessionRepository(
         val session = _activeSession.value
         if (session != null) {
             logger.i(TAG) { "Stopping Session: ${session.id}" }
-            _activeSession.value = null
-            _isAudioMute.value = false
-
-            actionSessionJob?.cancel()
-            actionSessionJob = null
+            cleanupSession()
         }
 
         return SessionState.Success
+    }
+
+    private fun cleanupSession() {
+        if (_activeSession.value == null) return
+
+        _activeSession.value = null
+        _isAudioMute.value = false
+        actionSessionJobs.forEach { it.cancel() }
+        actionSessionJobs.clear()
     }
 
     fun toggleAudioMute() {

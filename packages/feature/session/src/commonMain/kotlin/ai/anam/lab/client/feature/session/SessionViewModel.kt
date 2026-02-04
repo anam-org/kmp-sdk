@@ -1,15 +1,20 @@
 package ai.anam.lab.client.feature.session
 
+import ai.anam.lab.ConnectionClosedReason
 import ai.anam.lab.Session
 import ai.anam.lab.client.core.common.onLeft
 import ai.anam.lab.client.core.common.onRight
 import ai.anam.lab.client.core.logging.Logger
+import ai.anam.lab.client.core.notifications.ErrorCode
+import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.permissions.PermissionResult
 import ai.anam.lab.client.core.permissions.PermissionsManager
 import ai.anam.lab.client.core.viewmodel.BaseViewModel
 import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarInteractor
+import ai.anam.lab.client.domain.notifications.SendNotificationInteractor
 import ai.anam.lab.client.domain.permissions.RequestAudioPermissionInteractor
+import ai.anam.lab.client.domain.session.ObserveActiveSessionClosedInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionMuteStateInteractor
 import ai.anam.lab.client.domain.session.StartSessionWithCurrentPersonaInteractor
@@ -17,17 +22,20 @@ import ai.anam.lab.client.domain.session.StopSessionInteractor
 import ai.anam.lab.client.domain.session.ToggleActiveSessionMuteStateInteractor
 import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.launch
 
 @Inject
 class SessionViewModel(
     private val observeActiveSessionInteractor: ObserveActiveSessionInteractor,
     private val observeCurrentAvatarInteractor: ObserveCurrentAvatarInteractor,
+    private val observeActiveSessionClosedInteractor: ObserveActiveSessionClosedInteractor,
     private val startSessionInteractor: StartSessionWithCurrentPersonaInteractor,
     private val stopSessionInteractor: StopSessionInteractor,
     private val observeActiveSessionMuteStateInteractor: ObserveActiveSessionMuteStateInteractor,
     private val toggleActiveSessionMuteStateInteractor: ToggleActiveSessionMuteStateInteractor,
-    private val permissionsManager: PermissionsManager,
+    private val sendNotificationInteractor: SendNotificationInteractor,
+    permissionsManager: PermissionsManager,
     private val requestAudioPermissionInteractor: RequestAudioPermissionInteractor,
     private val logger: Logger,
 ) : BaseViewModel<SessionViewState>(SessionViewState(permissionsManager = permissionsManager)) {
@@ -65,6 +73,26 @@ class SessionViewModel(
             observeActiveSessionMuteStateInteractor().collect { isMute ->
                 setState { copy(isAudioMute = isMute) }
             }
+        }
+
+        viewModelScope.launch {
+            observeActiveSessionClosedInteractor()
+                .filterNot { event -> event is ConnectionClosedReason.Normal }
+                .collect { event ->
+                    val message = when (event) {
+                        is ConnectionClosedReason.ServerConnectionClosed -> event.reason
+                        is ConnectionClosedReason.WebRtcFailure -> event.message
+                        is ConnectionClosedReason.SignallingClientConnectionFailure -> event.message
+                        else -> null
+                    }
+
+                    sendNotificationInteractor(
+                        Notification.Error(
+                            errorCode = ErrorCode.SDK_ERROR,
+                            customMessage = message,
+                        ),
+                    )
+                }
         }
     }
 

@@ -8,6 +8,7 @@ import ai.anam.lab.api.SignalMessage
 import ai.anam.lab.api.SignalMessagePayload
 import ai.anam.lab.api.SignalMessageType
 import ai.anam.lab.api.UserDataMessage
+import ai.anam.lab.api.asRaw
 import ai.anam.lab.api.defaultJsonConfiguration
 import ai.anam.lab.utils.Logger
 import ai.anam.lab.utils.cancellableRunCatching
@@ -108,10 +109,11 @@ internal class StreamingClientImpl(
     private val remoteTrack = peerConnection.flatMapLatest { peerConnection -> peerConnection.onTrack }
 
     // The event bus.
-    private val _events = MutableSharedFlow<SessionEvent>()
+    private val _events = MutableSharedFlow<SessionEvent>(extraBufferCapacity = 5)
     override val events: Flow<SessionEvent> = _events.asSharedFlow()
 
     /**
+     * @throws MediaAccessException Thrown if we've been configured to use local audio, but the necessary permission
      * @throws MediaAccessException Thrown if we've been configured to use local audio, but the necessary permission
      * has not been granted.
      */
@@ -277,8 +279,10 @@ internal class StreamingClientImpl(
      * Disconnects the peer connection and cleans up all resources.
      */
     private fun disconnect(reason: ConnectionClosedReason) {
+        val connection = _peerConnection.value ?: return
+
         logger.i(TAG) { "Disconnecting WebRTC peer connection ($reason)..." }
-        _peerConnection.value?.close()
+        connection.close()
         _peerConnection.value = null
 
         _events.tryEmit(SessionEvent.ConnectionClosed(reason))
@@ -330,7 +334,8 @@ internal class StreamingClientImpl(
 
             SignalMessageType.EndSession -> {
                 // The server has requested that we disconnect.
-                disconnect(ConnectionClosedReason.ServerConnectionClosed(message.payload.toString()))
+                val reason = message.payload.asRaw().ifEmpty { message.payload.toString() }
+                disconnect(ConnectionClosedReason.ServerConnectionClosed(reason))
             }
 
             else -> Unit
