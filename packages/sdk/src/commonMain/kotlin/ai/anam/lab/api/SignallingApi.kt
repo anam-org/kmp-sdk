@@ -146,6 +146,8 @@ internal sealed interface SignalMessagePayload {
     data object Empty : SignalMessagePayload
 }
 
+internal fun SignalMessagePayload.asRaw(): String = (this as? SignalMessagePayload.Raw)?.value ?: ""
+
 @Serializable
 internal enum class RTCSessionDescriptionType {
     @SerialName("answer")

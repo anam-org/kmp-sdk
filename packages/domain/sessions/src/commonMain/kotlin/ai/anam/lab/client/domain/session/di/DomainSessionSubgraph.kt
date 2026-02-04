@@ -1,8 +1,10 @@
 package ai.anam.lab.client.domain.session.di
 
+import ai.anam.lab.SessionEvent
 import ai.anam.lab.client.core.client.SessionRepository
 import ai.anam.lab.client.domain.data.ObserveCurrentPersonaInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveMessageHistoryInteractor
+import ai.anam.lab.client.domain.session.ObserveActiveSessionClosedInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionMuteStateInteractor
 import ai.anam.lab.client.domain.session.ObserveIsSessionActiveInteractor
@@ -14,6 +16,8 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -34,6 +38,20 @@ interface DomainSessionSubgraph {
         return ObserveActiveMessageHistoryInteractor {
             session().flatMapLatest { session ->
                 session?.messages ?: flow { emit(emptyList()) }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Provides
+    fun providesObserveActiveSessionClosedInteractor(
+        session: ObserveActiveSessionInteractor,
+    ): ObserveActiveSessionClosedInteractor {
+        return ObserveActiveSessionClosedInteractor {
+            session().flatMapLatest { session ->
+                session?.events
+                    ?.filterIsInstance<SessionEvent.ConnectionClosed>()
+                    ?.map { it.reason } ?: emptyFlow()
             }
         }
     }
