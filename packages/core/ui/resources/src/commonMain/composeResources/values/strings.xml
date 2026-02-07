@@ -10,6 +10,7 @@
 
     <!-- Home -->
     <string name="messages_empty_state_message">Start a session to see your messages here!</string>
+    <string name="messages_send_content_description">Send</string>
     <string name="session_hangup_content_description">Hangup</string>
     <string name="session_call_content_description">Call</string>
 
