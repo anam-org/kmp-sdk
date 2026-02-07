@@ -115,6 +115,20 @@ class SessionRepository(
         actionSessionJobs.clear()
     }
 
+    suspend fun sendUserMessage(content: String) {
+        val text = content.trim()
+        if (text.isEmpty()) return
+
+        val session = _activeSession.value
+        if (session == null) {
+            logger.i(TAG) { "No active session; ignoring sendUserMessage call." }
+            return
+        }
+
+        logger.i(TAG) { "Sending user message: $text" }
+        session.sendUserMessage(text)
+    }
+
     fun toggleAudioMute() {
         val session = _activeSession.value ?: return
 

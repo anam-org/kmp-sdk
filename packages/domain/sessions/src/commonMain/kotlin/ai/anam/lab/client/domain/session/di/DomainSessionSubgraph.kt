@@ -8,6 +8,7 @@ import ai.anam.lab.client.domain.session.ObserveActiveSessionClosedInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionMuteStateInteractor
 import ai.anam.lab.client.domain.session.ObserveIsSessionActiveInteractor
+import ai.anam.lab.client.domain.session.SendActiveSessionUserMessageInteractor
 import ai.anam.lab.client.domain.session.StartSessionInteractor
 import ai.anam.lab.client.domain.session.StartSessionWithCurrentPersonaInteractor
 import ai.anam.lab.client.domain.session.StopSessionInteractor
@@ -95,5 +96,12 @@ interface DomainSessionSubgraph {
         repository: SessionRepository,
     ): ToggleActiveSessionMuteStateInteractor = ToggleActiveSessionMuteStateInteractor {
         repository.toggleAudioMute()
+    }
+
+    @Provides
+    fun providesSendActiveSessionUserMessageInteractor(
+        repository: SessionRepository,
+    ): SendActiveSessionUserMessageInteractor = SendActiveSessionUserMessageInteractor { content ->
+        repository.sendUserMessage(content)
     }
 }
