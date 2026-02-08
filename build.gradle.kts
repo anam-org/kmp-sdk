@@ -1,3 +1,5 @@
+import de.jensklingenberg.ktorfit.gradle.KtorfitPluginExtension
+
 plugins {
     id("ai.anam.lab.client.root")
 
@@ -22,5 +24,13 @@ tasks.register("printVersion") {
     val versionName = project.property("VERSION_NAME")
     doLast {
         println(versionName)
+    }
+}
+
+subprojects {
+    pluginManager.withPlugin("de.jensklingenberg.ktorfit") {
+        extensions.configure<KtorfitPluginExtension> {
+            compilerPluginVersion.set(libs.versions.ktorfit.compiler)
+        }
     }
 }

@@ -10,7 +10,7 @@ import org.gradle.kotlin.dsl.configure
 
 fun Project.configureAndroid() {
     application {
-        compileSdkVersion(Versions.COMPILE_SDK)
+        compileSdk { version = release(Versions.COMPILE_SDK) }
 
         defaultConfig {
             minSdk = Versions.MIN_SDK
