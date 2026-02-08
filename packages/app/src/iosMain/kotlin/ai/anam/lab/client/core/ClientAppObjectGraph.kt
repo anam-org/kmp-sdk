@@ -1,6 +1,5 @@
 package ai.anam.lab.client.core
 
-import ai.anam.lab.PlatformContext
 import ai.anam.lab.client.core.di.ApplicationObjectGraphHolder
 import ai.anam.lab.client.core.di.BaseApplicationObjectGraph
 import ai.anam.lab.client.core.logging.Logger
@@ -12,14 +11,12 @@ import ai.anam.lab.client.core.viewmodel.ViewModelGraphProvider
 import coil3.ImageLoader
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
-import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.createGraphFactory
 
 @DependencyGraph(AppScope::class)
 actual interface ClientAppObjectGraph :
     BaseApplicationObjectGraph,
-    HasClientViewObjectGraph,
-    IosAppManualBindings {
+    HasClientViewObjectGraph {
     @DependencyGraph.Factory
     fun interface Factory {
         fun create(): ClientAppObjectGraph
@@ -42,13 +39,3 @@ actual interface ClientAppObjectGraph :
 fun createClientAppObjectGraph(): ClientAppObjectGraph = createGraphFactory<ClientAppObjectGraph.Factory>()
     .create()
     .also { ApplicationObjectGraphHolder.set(it) }
-
-/**
- * iOS-specific manual bindings. Extends [ClientAppManualBindings] with platform-specific
- * bindings (e.g. [PlatformContext]).
- */
-interface IosAppManualBindings : ClientAppManualBindings {
-
-    @Provides
-    fun providesPlatformContext(): PlatformContext = PlatformContext.INSTANCE
-}

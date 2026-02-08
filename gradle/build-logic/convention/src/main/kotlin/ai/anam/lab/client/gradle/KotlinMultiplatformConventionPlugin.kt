@@ -9,7 +9,9 @@ import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.tasks.CompileUsingKotlinDaemon
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerExecutionStrategy
 
 class KotlinMultiplatformConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
@@ -65,6 +67,15 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
             }
 
             configureSpotless()
+        }
+
+        // Workaround for KT-82395: "No file found for source null" when compiler plugins
+        // (Metro, Compose, etc.) generate top-level declarations with incremental compilation.
+        // Use OUT_OF_PROCESS strategy which disables incremental for wasmJs only.
+        tasks.configureEach {
+            if (this is CompileUsingKotlinDaemon && name.contains("WasmJs")) {
+                compilerExecutionStrategy.set(KotlinCompilerExecutionStrategy.OUT_OF_PROCESS)
+            }
         }
     }
 }
