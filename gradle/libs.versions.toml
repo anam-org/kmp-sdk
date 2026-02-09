@@ -55,7 +55,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 coil-wasm-js = { module = "io.coil-kt.coil3:coil-wasm-js", version.ref = "coil" }
 coil-network-ktor3-wasm-js = { module = "io.coil-kt.coil3:coil-network-ktor3-wasm-js", version.ref = "coil" }
-lazy-paginated-compose = { module = "io.github.ahmad-hamwi:lazy-pagination-compose", version = "1.7.1" }
+lazy-paginated-compose = { module = "io.github.ahmad-hamwi:lazy-pagination-compose", version = "1.7.2" }
 
 # Compose Multiplatform dependencies
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
