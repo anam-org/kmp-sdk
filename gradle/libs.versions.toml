@@ -18,6 +18,7 @@ coil = "3.3.0"
 dokka = "2.1.0"
 licensee = "1.14.1"
 buildConfig = "6.0.7"
+maven-publish = "0.36.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -91,3 +92,4 @@ ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 licensee = { id = "app.cash.licensee", version.ref = "licensee" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }

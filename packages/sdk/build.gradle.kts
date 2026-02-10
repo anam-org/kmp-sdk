@@ -13,6 +13,7 @@ plugins {
     id("org.jetbrains.dokka")
     id("ai.anam.lab.client.licensee")
     id("com.github.gmazzo.buildconfig")
+    id("com.vanniktech.maven.publish")
 }
 
 kotlin {
