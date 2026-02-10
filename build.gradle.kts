@@ -15,4 +15,12 @@ plugins {
     alias(libs.plugins.dokka) apply false
     alias(libs.plugins.licensee) apply false
     alias(libs.plugins.buildConfig) apply false
+    alias(libs.plugins.maven.publish) apply false
+}
+
+tasks.register("printVersion") {
+    val versionName = project.property("VERSION_NAME")
+    doLast {
+        println(versionName)
+    }
 }
