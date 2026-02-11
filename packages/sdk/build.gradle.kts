@@ -126,3 +126,7 @@ buildConfig {
     packageName("ai.anam.lab")
     buildConfigField("String", "VERSION", "\"${providers.gradleProperty("VERSION_NAME").get()}\"")
 }
+
+tasks.named("sourcesJar") {
+    dependsOn("kspCommonMainKotlinMetadata")
+}

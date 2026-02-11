@@ -125,8 +125,8 @@ internal suspend inline fun <T> apiCall(block: suspend () -> T): ApiResult<T> {
 /**
  * Returns a human-readable error message from this [ApiResult.Error].
  *
- * For [HttpError], returns the parsed message if available, otherwise a generic message based on the status code.
- * For [SerializationError] and [UnknownError], returns their message directly.
+ * For [ApiResult.Error.HttpError], returns the parsed message if available, otherwise a generic message based on the status code.
+ * For [ApiResult.Error.SerializationError] and [ApiResult.Error.UnknownError], returns their message directly.
  */
 internal val ApiResult.Error.message: String
     get() = when (val error = this) {
@@ -138,8 +138,8 @@ internal val ApiResult.Error.message: String
 /**
  * Returns the underlying [Throwable] that caused this error, if available.
  *
- * Returns `null` for [HttpError] (which doesn't have a cause).
- * Returns the cause for [SerializationError] and [UnknownError].
+ * Returns `null` for [ApiResult.Error.HttpError] (which doesn't have a cause).
+ * Returns the cause for [ApiResult.Error.SerializationError] and [ApiResult.Error.UnknownError].
  */
 internal val ApiResult.Error.cause: Throwable?
     get() = when (val error = this) {

@@ -20,9 +20,9 @@ import org.w3c.dom.MediaProvider
  * wasmJs implementation of [VideoSession] following the webrtc-kmp wasmJs pattern:
  * https://github.com/shepeliev/webrtc-kmp/blob/main/sample/composeApp/src/wasmJsMain/kotlin/Video.wasmJs.kt
  *
- * Uses a [MediaStream], an [HTMLVideoElement] with [srcObject] set to the stream's underlying JS object,
+ * Uses a [MediaStream], an `HTMLVideoElement` with `srcObject` set to the stream's underlying JS object,
  * and [Box] + [onGloballyPositioned] to position the video overlay. [onFirstFrameRendered] is invoked
- * when [HTMLVideoElement.onloadeddata] fires.
+ * when `HTMLVideoElement.onloadeddata` fires.
  */
 @Composable
 internal actual fun VideoSession(tracks: SessionTracks, onFirstFrameRendered: () -> Unit, modifier: Modifier) {

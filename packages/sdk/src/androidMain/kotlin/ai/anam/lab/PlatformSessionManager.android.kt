@@ -20,7 +20,7 @@ internal actual fun createPlatformSessionManager(context: PlatformContext, logge
 /**
  * This Android specific [PlatformSessionManager] is responsible for managing any platform specific integrations during
  * the lifetime of the [Session]. For example, since the session is effectively making a VOIP call, we need to obtain
- * the relevant audio focus via Android's [AudioManager].
+ * the relevant audio focus via Android's `AudioManager`.
  */
 internal class PlatformSessionManagerImpl(private val context: Context, private val logger: Logger) :
     PlatformSessionManager {
