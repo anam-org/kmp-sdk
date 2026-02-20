@@ -13,39 +13,50 @@ kotlin {
             dependencies {
                 implementation(libs.compose.material3)
                 implementation(libs.compose.material.icons.extended)
+                implementation(libs.compose.components.resources)
                 implementation(libs.androidx.navigation.compose)
                 implementation(libs.androidx.lifecycle.viewmodelCompose)
-                implementation(libs.lazy.paginated.compose)
-                implementation(libs.compose.components.resources)
                 implementation(libs.coil.compose)
 
                 api(project(":packages:core:logging"))
                 implementation(project(":packages:core:common"))
-                implementation(project(":packages:core:datetime"))
                 implementation(project(":packages:core:di"))
                 implementation(project(":packages:core:navigation"))
+                implementation(project(":packages:core:compression"))
                 implementation(project(":packages:core:viewmodel"))
-                implementation(project(":packages:core:ui:components"))
+                implementation(project(":packages:core:ui:core"))
                 implementation(project(":packages:core:ui:resources"))
 
+                implementation(project(":packages:core:permissions"))
+
                 implementation(project(":packages:domain:data"))
-                implementation(project(":packages:domain:notifications"))
+                implementation(project(":packages:domain:permissions"))
             }
         }
 
-        commonTest {
+        androidMain {
             dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.assertk)
-                implementation(libs.turbine)
-                implementation(project(":packages:core:test-fixtures"))
+                implementation(libs.peekaboo.ui)
+                implementation(libs.peekaboo.image.picker)
+            }
+        }
+
+        iosMain {
+            dependencies {
+                implementation(libs.peekaboo.ui)
+                implementation(libs.peekaboo.image.picker)
+            }
+        }
+
+        wasmJsMain {
+            dependencies {
+                implementation(libs.kotlinx.browser)
             }
         }
     }
 
     androidLibrary {
-        namespace = "ai.anam.lab.client.feature.avatars"
+        namespace = "ai.anam.lab.client.feature.create"
         compileSdk = Versions.COMPILE_SDK
         minSdk = Versions.MIN_SDK
     }

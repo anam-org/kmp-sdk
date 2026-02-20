@@ -22,6 +22,8 @@ import ai.anam.lab.client.domain.notifications.di.DomainNotificationsSubgraph
 import ai.anam.lab.client.domain.permissions.di.DomainPermissionsSubgraph
 import ai.anam.lab.client.domain.session.di.DomainSessionSubgraph
 import ai.anam.lab.client.feature.avatars.AvatarsFeatureViewSubgraph
+import ai.anam.lab.client.feature.create.CreateAvatarFeatureViewSubgraph
+import ai.anam.lab.client.feature.create.CreateAvatarScreen
 import ai.anam.lab.client.feature.home.HomeFeatureViewSubgraph
 import ai.anam.lab.client.feature.home.HomeScreen
 import ai.anam.lab.client.feature.licenses.LicensesFeatureViewSubgraph
@@ -72,7 +74,8 @@ interface ClientAppManualBindings :
     SessionFeatureViewSubgraph,
     MessagesFeatureViewSubgraph,
     NotificationsFeatureViewSubgraph,
-    LicensesFeatureViewSubgraph {
+    LicensesFeatureViewSubgraph,
+    CreateAvatarFeatureViewSubgraph {
 
     @Binds
     fun AnamPreferencesImpl.bind(): AnamPreferences
@@ -88,5 +91,6 @@ interface ClientAppManualBindings :
         FeatureRoute.Home to { _ -> HomeScreen() },
         FeatureRoute.Settings to { _ -> SettingsScreen() },
         FeatureRoute.Licenses to { _ -> LicensesScreen() },
+        FeatureRoute.Create to { _ -> CreateAvatarScreen() },
     )
 }

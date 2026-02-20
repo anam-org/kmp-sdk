@@ -5,6 +5,9 @@ import ai.anam.lab.client.core.data.models.Avatar
 import ai.anam.lab.client.core.data.models.AvatarErrorReason
 import ai.anam.lab.client.core.data.models.Meta
 import ai.anam.lab.client.core.data.models.PagedList
+import ai.anam.lab.client.core.navigation.FeatureRoute
+import ai.anam.lab.client.core.navigation.NavigationEvent
+import ai.anam.lab.client.core.navigation.Navigator
 import ai.anam.lab.client.core.notifications.ErrorCode
 import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.test.FakeLogger
@@ -28,9 +31,11 @@ import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlin.test.Test
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
@@ -124,6 +129,25 @@ class AvatarsViewModelTest {
             val updated = awaitItem()
             assertThat(updated.query).isEqualTo("")
             assertThat(updated.onlyOneShot).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // endregion
+
+    // region Navigation
+
+    @Test
+    fun `navigateToCreateAvatar emits Navigate event with Create route`() = testScope.runTest {
+        val navigator = FakeNavigator()
+        val viewModel = createViewModel(navigator = navigator)
+
+        navigator.events.test {
+            viewModel.navigateToCreateAvatar()
+
+            val event = awaitItem()
+            assertThat(event).isInstanceOf<NavigationEvent.Navigate>()
+            assertThat((event as NavigationEvent.Navigate).route).isEqualTo(FeatureRoute.Create)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -430,6 +454,7 @@ class AvatarsViewModelTest {
         apiKeyChangedFlow: Flow<Unit> = emptyFlow(),
         onSetPersonaAvatar: (String, String?) -> Unit = { _, _ -> },
         onSendNotification: suspend (Notification) -> Unit = {},
+        navigator: Navigator = FakeNavigator(),
     ): AvatarsViewModel = AvatarsViewModel(
         fetchAvatarsInteractor = FetchAvatarsInteractor { page, perPage, query, oneShot ->
             fetchAvatars(page, perPage, query, oneShot)
@@ -443,6 +468,7 @@ class AvatarsViewModelTest {
         sendNotificationInteractor = SendNotificationInteractor { notification ->
             onSendNotification(notification)
         },
+        navigator = navigator,
         logger = FakeLogger(),
     ).also { testScope.runCurrent() }
 
@@ -466,4 +492,17 @@ class AvatarsViewModelTest {
         )
 
     // endregion
+}
+
+private class FakeNavigator : Navigator {
+    private val _events = Channel<NavigationEvent>(Channel.BUFFERED)
+    override val events: Flow<NavigationEvent> = _events.receiveAsFlow()
+
+    override fun navigate(route: FeatureRoute) {
+        _events.trySend(NavigationEvent.Navigate(route))
+    }
+
+    override fun pop() {
+        _events.trySend(NavigationEvent.Pop)
+    }
 }
