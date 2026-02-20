@@ -7,6 +7,8 @@ import ai.anam.lab.client.core.data.models.Avatar
 import ai.anam.lab.client.core.data.models.AvatarErrorReason
 import ai.anam.lab.client.core.data.models.isLastPage
 import ai.anam.lab.client.core.logging.Logger
+import ai.anam.lab.client.core.navigation.FeatureRoute
+import ai.anam.lab.client.core.navigation.Navigator
 import ai.anam.lab.client.core.notifications.ErrorCode
 import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
@@ -38,6 +40,7 @@ class AvatarsViewModel(
     private val setPersonaAvatarInteractor: SetPersonaAvatarInteractor,
     private val observeApiKeyChangedInteractor: ObserveApiKeyChangedInteractor,
     private val sendNotificationInteractor: SendNotificationInteractor,
+    private val navigator: Navigator,
     private val logger: Logger,
 ) : BaseViewModel<AvatarsViewState>(
     AvatarsViewState(items = PaginationState(initialPageKey = 1, onRequestPage = {})),
@@ -84,6 +87,11 @@ class AvatarsViewModel(
         setState { copy(query = "", onlyOneShot = false) }
         searchJob?.cancel()
         resetPagination()
+    }
+
+    fun navigateToCreateAvatar() {
+        logger.i(TAG) { "Navigating to create avatar" }
+        navigator.navigate(FeatureRoute.Create)
     }
 
     fun setAvatar(id: String, name: String) {

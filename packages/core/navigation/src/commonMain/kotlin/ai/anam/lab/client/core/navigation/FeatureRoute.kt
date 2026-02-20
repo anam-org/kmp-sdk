@@ -9,6 +9,7 @@ enum class FeatureRoute(val route: String) {
     Home("home"),
     Settings("settings"),
     Licenses("licenses"),
+    Create("create"),
 }
 
 @MapKey

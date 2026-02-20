@@ -12,8 +12,11 @@ import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
 import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_delete_content_description
 import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_one_shot
+import ai.anam.lab.client.core.ui.resources.generated.resources.create_avatar_one_shot_avatar
 import ai.anam.lab.client.core.viewmodel.metroViewModel
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +33,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -61,6 +65,7 @@ fun AvatarsView(modifier: Modifier = Modifier, viewModel: AvatarsViewModel = met
         onQueryChange = viewModel::onQueryChange,
         onOneShotChange = viewModel::onOneShotChange,
         onResetFilters = viewModel::resetFilters,
+        onCreateAvatarClick = viewModel::navigateToCreateAvatar,
         modifier = modifier,
     )
 }
@@ -74,6 +79,7 @@ fun AvatarsView(
     onOneShotChange: (Boolean) -> Unit,
     onResetFilters: () -> Unit,
     modifier: Modifier = Modifier,
+    onCreateAvatarClick: () -> Unit = {},
     minColumns: Int = 2,
     maxColumns: Int = 4,
     minColumnWidth: Dp = 160.dp,
@@ -140,6 +146,9 @@ fun AvatarsView(
                     }
                 },
             ) {
+                item {
+                    CreateAvatarItem(onClick = onCreateAvatarClick)
+                }
                 itemsIndexed(
                     viewState.items.allItems!!,
                 ) { _, item ->
@@ -231,6 +240,42 @@ fun Avatar(
                 text = avatar.updatedAt.toFormattedDateString(),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6F),
                 style = MaterialTheme.typography.labelSmall,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CreateAvatarItem(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val borderColor = MaterialTheme.colorScheme.outline
+    Column(
+        modifier = modifier.clickable(onClick = onClick),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(4f / 3f)
+                .padding(bottom = 4.dp)
+                .border(
+                    border = BorderStroke(2.dp, borderColor),
+                    shape = RoundedCornerShape(8.dp),
+                )
+                .clip(RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.CameraAlt,
+                contentDescription = stringResource(Res.string.create_avatar_one_shot_avatar),
+                modifier = Modifier.size(40.dp),
+                tint = borderColor,
+            )
+        }
+
+        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+            Text(
+                text = stringResource(Res.string.create_avatar_one_shot_avatar),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelMedium,
             )
         }
     }

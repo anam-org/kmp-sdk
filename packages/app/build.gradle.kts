@@ -47,6 +47,7 @@ kotlin {
                 export(project(":packages:feature:notifications"))
                 export(project(":packages:feature:settings"))
                 export(project(":packages:feature:licenses"))
+                export(project(":packages:feature:create"))
             }
         }
     }
@@ -92,6 +93,7 @@ kotlin {
                 api(project(":packages:feature:notifications"))
                 api(project(":packages:feature:settings"))
                 api(project(":packages:feature:licenses"))
+                api(project(":packages:feature:create"))
             }
         }
     }

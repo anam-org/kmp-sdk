@@ -72,4 +72,24 @@
     <string name="empty_search_title">No results found</string>
     <string name="empty_search_description">Try a different search term.</string>
     <string name="empty_search_reset">Reset</string>
+
+    <!-- Create Avatar -->
+    <string name="create_avatar_one_shot_avatar">One-Shot Avatar</string>
+    <string name="create_avatar_back_content_description">Back</string>
+    <string name="create_avatar_camera_permission_denied">Camera permission was denied. You can still pick an image from your gallery.</string>
+    <string name="create_avatar_pick_from_gallery">Pick from gallery</string>
+    <string name="create_avatar_image_captured">Image captured</string>
+    <string name="create_avatar_name_label">Avatar Name</string>
+    <string name="create_avatar_name_placeholder">Enter avatar name</string>
+    <string name="create_avatar_name_hint">Must be 3–50 characters</string>
+    <string name="create_avatar_uploading">Creating your avatar…</string>
+    <string name="create_avatar_success_title">Avatar Created!</string>
+    <string name="create_avatar_done_button">Done</string>
+    <string name="create_avatar_error_title">Something went wrong</string>
+    <string name="create_avatar_retry_button">Retry</string>
+    <string name="create_avatar_go_back_button">Go Back</string>
+    <string name="create_avatar_camera_permission_required">Camera permission is required to take a photo.</string>
+    <string name="create_avatar_take_photo_content_description">Take photo</string>
+    <string name="create_avatar_switch_camera_content_description">Switch camera</string>
+    <string name="create_avatar_camera_not_supported_web">Camera is not supported on web — use the image picker instead.</string>
 </resources>

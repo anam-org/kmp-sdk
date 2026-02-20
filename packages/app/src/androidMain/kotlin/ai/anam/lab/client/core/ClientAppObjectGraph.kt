@@ -7,6 +7,7 @@ import ai.anam.lab.client.core.navigation.FeatureRoute
 import ai.anam.lab.client.core.navigation.Navigator
 import ai.anam.lab.client.core.settings.AnamPreferences
 import ai.anam.lab.client.core.viewmodel.ViewModelGraphProvider
+import ai.anam.lab.client.feature.create.CreateAvatarScreen
 import ai.anam.lab.client.feature.home.HomeScreen
 import ai.anam.lab.client.feature.licenses.LicensesScreen
 import ai.anam.lab.client.feature.settings.SettingsScreen
@@ -47,5 +48,6 @@ actual interface ClientAppObjectGraph :
         FeatureRoute.Home to { _ -> HomeScreen() },
         FeatureRoute.Settings to { _ -> SettingsScreen() },
         FeatureRoute.Licenses to { _ -> LicensesScreen() },
+        FeatureRoute.Create to { _ -> CreateAvatarScreen() },
     )
 }
