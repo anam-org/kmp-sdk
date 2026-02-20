@@ -9,6 +9,8 @@ interface PermissionsManager {
     fun getBindTarget(): Any?
 
     suspend fun provideAudioPermission(): PermissionResult
+
+    suspend fun provideCameraPermission(): PermissionResult
 }
 
 enum class PermissionResult { Granted, Denied, DeniedAlways }
@@ -24,4 +26,9 @@ class PermissionsManagerImpl(private val controller: PlatformPermissionsControll
      * Attempt to request the audio permission, and return the status of the result.
      */
     override suspend fun provideAudioPermission(): PermissionResult = controller.requestRecordAudio()
+
+    /**
+     * Attempt to request the camera permission, and return the status of the result.
+     */
+    override suspend fun provideCameraPermission(): PermissionResult = controller.requestCamera()
 }
