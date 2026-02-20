@@ -1,5 +1,7 @@
 package ai.anam.lab.client.feature.settings
 
+import ai.anam.lab.client.core.navigation.SharedTransitionKeys
+import ai.anam.lab.client.core.navigation.sharedBoundsIfAvailable
 import ai.anam.lab.client.core.settings.Theme
 import ai.anam.lab.client.core.ui.components.Preference
 import ai.anam.lab.client.core.ui.components.PreferenceDivider
@@ -62,6 +64,7 @@ fun SettingsScreen(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
+                modifier = Modifier.sharedBoundsIfAvailable(key = SharedTransitionKeys.TOP_BAR),
                 title = {
                     Text(
                         text = stringResource(Res.string.app_name),

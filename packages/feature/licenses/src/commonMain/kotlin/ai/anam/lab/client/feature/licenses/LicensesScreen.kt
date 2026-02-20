@@ -1,5 +1,7 @@
 package ai.anam.lab.client.feature.licenses
 
+import ai.anam.lab.client.core.navigation.SharedTransitionKeys
+import ai.anam.lab.client.core.navigation.sharedBoundsIfAvailable
 import ai.anam.lab.client.core.ui.components.Preference
 import ai.anam.lab.client.core.ui.components.PreferenceHeader
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
@@ -47,6 +49,7 @@ fun LicensesScreen(viewState: LicensesViewState, onNavigateBack: () -> Unit, mod
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
+                modifier = Modifier.sharedBoundsIfAvailable(key = SharedTransitionKeys.TOP_BAR),
                 title = {
                     Text(
                         text = stringResource(Res.string.licenses_title),

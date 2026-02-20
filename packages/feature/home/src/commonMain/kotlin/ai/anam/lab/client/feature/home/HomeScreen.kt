@@ -1,5 +1,7 @@
 package ai.anam.lab.client.feature.home
 
+import ai.anam.lab.client.core.navigation.SharedTransitionKeys
+import ai.anam.lab.client.core.navigation.sharedBoundsIfAvailable
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
 import ai.anam.lab.client.core.ui.resources.generated.resources.app_name
 import ai.anam.lab.client.core.ui.resources.generated.resources.settings_content_description
@@ -68,6 +70,7 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
+                modifier = Modifier.sharedBoundsIfAvailable(key = SharedTransitionKeys.TOP_BAR),
                 title = {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
