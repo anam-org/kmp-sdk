@@ -3,6 +3,7 @@ package ai.anam.lab.client.core.data
 import ai.anam.lab.client.core.api.ApiResult
 import ai.anam.lab.client.core.api.AvatarApi
 import ai.anam.lab.client.core.api.apiCall
+import ai.anam.lab.client.core.api.createAvatar
 import ai.anam.lab.client.core.common.Either
 import ai.anam.lab.client.core.coroutines.cancellableRunCatching
 import ai.anam.lab.client.core.data.models.Avatar
@@ -15,12 +16,14 @@ import ai.anam.lab.client.core.di.Dispatcher
 import ai.anam.lab.client.core.di.DispatcherType
 import ai.anam.lab.client.core.logging.Logger
 import dev.zacsweers.metro.Inject
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 @Inject
 class AvatarRepository(
     avatarApi: Lazy<AvatarApi>,
+    private val httpClient: HttpClient,
     @Dispatcher(DispatcherType.IO) private val ioDispatcher: CoroutineDispatcher,
     private val logger: Logger,
 ) {
@@ -100,6 +103,28 @@ class AvatarRepository(
                 },
             )
     }
+
+    suspend fun createAvatar(displayName: String, imageData: ByteArray): Either<AvatarErrorReason, Avatar> =
+        withContext(ioDispatcher) {
+            logger.i(TAG) { "Creating avatar: $displayName (${imageData.size} bytes)" }
+            cancellableRunCatching {
+                apiCall { avatarApi.createAvatar(httpClient, displayName, imageData) }
+            }.fold(
+                onSuccess = { apiResult ->
+                    logger.i(TAG) { if (apiResult is ApiResult.Success) "Success: $apiResult" else "Error: $apiResult" }
+                    apiResult.toAvatarResult()
+                },
+                onFailure = { exception ->
+                    logger.i(TAG, exception) { "Unable to create avatar" }
+                    Either.Left(
+                        AvatarErrorReason.Unknown(
+                            message = "Failed to create avatar: An unexpected error occurred",
+                            cause = exception,
+                        ),
+                    )
+                },
+            )
+        }
 
     private companion object {
         const val TAG = "AvatarRepository"

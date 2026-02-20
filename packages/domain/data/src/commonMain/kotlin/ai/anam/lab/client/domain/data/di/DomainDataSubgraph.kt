@@ -9,6 +9,7 @@ import ai.anam.lab.client.core.data.VoiceRepository
 import ai.anam.lab.client.core.data.models.Avatar
 import ai.anam.lab.client.core.http.InvalidateAuthTokensInteractor
 import ai.anam.lab.client.core.licenses.LicenseStore
+import ai.anam.lab.client.domain.data.CreateAvatarInteractor
 import ai.anam.lab.client.domain.data.DeleteAvatarInteractor
 import ai.anam.lab.client.domain.data.FetchAvatarInteractor
 import ai.anam.lab.client.domain.data.FetchAvatarsInteractor
@@ -88,6 +89,12 @@ interface DomainDataSubgraph {
     ): ObserveCurrentLlmIdInteractor = ObserveCurrentLlmIdInteractor {
         observeCurrentPersonaInteractor().map { persona -> persona.llmId }
     }
+
+    @Provides
+    fun providesCreateAvatarInteractor(repo: AvatarRepository): CreateAvatarInteractor =
+        CreateAvatarInteractor { displayName, imageData ->
+            repo.createAvatar(displayName, imageData)
+        }
 
     @Provides
     fun providesFetchAvatarInteractor(repo: AvatarRepository): FetchAvatarInteractor = FetchAvatarInteractor { id ->

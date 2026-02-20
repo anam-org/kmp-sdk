@@ -2,12 +2,14 @@ package ai.anam.lab.client.core.http
 
 import ai.anam.lab.client.core.logging.Logger
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.authProvider
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -41,6 +43,12 @@ fun buildApiHttpClient(token: () -> String?, logger: Logger) = HttpClient {
 
     install(ContentNegotiation) {
         json(defaultJsonConfiguration)
+    }
+
+    install(HttpTimeout)
+
+    defaultRequest {
+        url("https://api.anam.ai/")
     }
 
     // Configure ktor to throw a ResponseException if we don't get a successful status code.

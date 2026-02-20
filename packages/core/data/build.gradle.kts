@@ -15,6 +15,7 @@ kotlin {
                 api(project(":packages:core:common"))
                 api(project(":packages:core:http"))
                 api(project(":packages:core:logging"))
+                implementation(libs.ktor.client.core)
             }
         }
 

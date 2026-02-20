@@ -33,6 +33,16 @@ sealed interface AvatarErrorReason {
     data object NotAuthorized : AvatarErrorReason
 
     /**
+     * Represents a bad request error (400 error).
+     */
+    data object BadRequest : AvatarErrorReason
+
+    /**
+     * Represents a forbidden error (403 error).
+     */
+    data object Forbidden : AvatarErrorReason
+
+    /**
      * Represents the case where the requested avatar was not found (404 error).
      */
     data object AvatarNotFound : AvatarErrorReason
@@ -106,7 +116,9 @@ private fun ApiResult.Error.toAvatarErrorReason(): AvatarErrorReason {
     return when (this) {
         is ApiResult.Error.HttpError -> {
             when (statusCode) {
+                400 -> AvatarErrorReason.BadRequest
                 401 -> AvatarErrorReason.NotAuthorized
+                403 -> AvatarErrorReason.Forbidden
                 404 -> AvatarErrorReason.AvatarNotFound
                 else -> AvatarErrorReason.Unknown(message = message)
             }
