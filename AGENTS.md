@@ -4,7 +4,7 @@ This document provides context for AI agents (and human developers) working on t
 
 ## Project Overview
 
-Anam is a **Kotlin Multiplatform (KMP)** project targeting **Android** and **iOS**. It uses **Compose Multiplatform** for the UI, allowing for a high degree of code sharing between platforms.
+Anam is a **Kotlin Multiplatform (KMP)** project targeting **Android**, **iOS**, and **Web (wasmJs/browser)**. It uses **Compose Multiplatform** for the UI, allowing for a high degree of code sharing between platforms.
 
 ## Tech Stack
 
@@ -12,7 +12,7 @@ Anam is a **Kotlin Multiplatform (KMP)** project targeting **Android** and **iOS
 -   **UI Framework**: Compose Multiplatform
 -   **Build System**: Gradle (Kotlin DSL)
 -   **Dependency Injection**: [Metro](https://github.com/zacsweers/metro) (Kotlin Multiplatform dependency injection)
--   **HTTP Client**: Ktor
+-   **HTTP Client**: [Ktorfit](https://github.com/Foso/Ktorfit) 2.7+ (Retrofit-like KSP code-gen wrapper over Ktor)
 -   **Linting**: Spotless with Ktlint (Kotlin), SwiftLint (Swift), [Compose Rules](https://github.com/mrmans0n/compose-rules)
 
 ## Project Structure
@@ -39,11 +39,18 @@ The repository follows a monorepo-like structure:
 -   **Compose Rules**: The project enforces strict Compose best practices using [Compose Rules](https://github.com/mrmans0n/compose-rules).
 -   **Indentation**: 4 spaces.
 -   **Trailing Commas**: Encouraged/Enforced, especially in Compose code.
+-   **Required after every edit**: Always run `./gradlew spotlessApply` after modifying any Kotlin files to ensure formatting is correct before committing. Do not skip this step.
 
 ### Architecture
--   **MVVM**: The project appears to follow a Model-View-ViewModel pattern.
--   **State Management**: UI state is typically exposed via `StateFlow` from ViewModels and consumed using `collectAsState()` in Composables.
--   **Features**: Features are modularized in `packages/feature/`.
+-   **MVVM**: The project follows a Model-View-ViewModel pattern.
+-   **State Management**: ViewModels extend `BaseViewModel<S : ViewState>`. State is updated via `setState { copy(...) }` and collected in Composables via `state.collectAsState()`. Retrieve ViewModels in Composables using the `metroViewModel()` helper.
+-   **Error Handling**: Uses `Either<L, R>` (Left = error, Right = success) and an `ApiResult` sealed class.
+-   **Repository Pattern**: Repositories call `cancellableRunCatching { apiCall { ... } }.fold(...)` on the IO dispatcher.
+-   **Domain Interactors**: Defined as `fun interface` types and wired in `DomainDataSubgraph`.
+-   **Features**: Features are modularized in `packages/feature/`. Each feature registers via two DI subgraphs:
+    -   `FeatureSubgraph` (`@ContributesTo(AppScope::class)`) — registers `FeatureContent` via `@FeatureRouteKey`.
+    -   `FeatureViewSubgraph` (`@ContributesTo(ViewModelScope::class)`) — registers the ViewModel via `@ViewModelKey`.
+-   **DI Scopes**: `AppScope` for app-level singletons; `ViewModelScope` for ViewModel-scoped bindings.
 -   **Dependency Injection**: Uses `dev.zacsweers.metro` (Metro), which provides a Dagger-like experience for Kotlin Multiplatform.
 
 ### Naming Conventions
@@ -62,6 +69,7 @@ The repository follows a monorepo-like structure:
 ### Git Commit Messages
 -   **Title**: Start with a capital letter and use the imperative mood (e.g., "Build: Add and configure...").
 -   **Format**: `Type: Description` (e.g., `Build:`, `Fix:`, `Feat:`).
+-   **Co-authors**: Do not add AI assistants (e.g., Claude) as co-authors in commit messages.
 
 ## Build & Test
 
@@ -102,6 +110,18 @@ The repository follows a monorepo-like structure:
         ```bash
         swiftlint
         ```
+
+## Kotlin/Wasm JS Interop
+
+The `wasmJs` target has stricter interop rules than Kotlin/JS:
+
+-   **`js()` calls**: Must be package-level function bodies containing a string literal only — no inline expressions.
+    ```kotlin
+    fun myJsHelper(cb: (JsAny) -> Unit) = js("someJsApi(cb)")
+    ```
+-   **Parameters**: `js()` can capture Kotlin function parameters (including lambdas typed as `(JsAny) -> Unit`).
+-   **No `asDynamic()`**: This is Kotlin/JS only and does not exist in Kotlin/Wasm.
+-   **ArrayBuffer → ByteArray**: Use `org.khronos.webgl.Int8Array(buffer).toByteArray()`.
 
 ## Convention Plugins
 The project uses custom convention plugins defined in `gradle/build-logic`. These centralize configuration for:
