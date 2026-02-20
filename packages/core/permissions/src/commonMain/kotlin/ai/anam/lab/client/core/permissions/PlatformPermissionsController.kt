@@ -7,6 +7,8 @@ package ai.anam.lab.client.core.permissions
 interface PlatformPermissionsController {
     suspend fun requestRecordAudio(): PermissionResult
 
+    suspend fun requestCamera(): PermissionResult
+
     /**
      * For Android, the moko PermissionsController to bind to the Activity lifecycle.
      * Null on iOS and wasmJs.

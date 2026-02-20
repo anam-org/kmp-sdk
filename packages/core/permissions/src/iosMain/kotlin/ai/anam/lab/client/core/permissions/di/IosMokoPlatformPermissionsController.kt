@@ -5,6 +5,7 @@ import ai.anam.lab.client.core.permissions.PlatformPermissionsController
 import dev.icerock.moko.permissions.DeniedAlwaysException
 import dev.icerock.moko.permissions.DeniedException
 import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.camera.CameraPermission
 import dev.icerock.moko.permissions.microphone.RecordAudioPermission
 
 internal class IosMokoPlatformPermissionsController(private val controller: PermissionsController) :
@@ -14,6 +15,15 @@ internal class IosMokoPlatformPermissionsController(private val controller: Perm
 
     override suspend fun requestRecordAudio(): PermissionResult = try {
         controller.providePermission(RecordAudioPermission)
+        PermissionResult.Granted
+    } catch (_: DeniedException) {
+        PermissionResult.Denied
+    } catch (_: DeniedAlwaysException) {
+        PermissionResult.DeniedAlways
+    }
+
+    override suspend fun requestCamera(): PermissionResult = try {
+        controller.providePermission(CameraPermission)
         PermissionResult.Granted
     } catch (_: DeniedException) {
         PermissionResult.Denied

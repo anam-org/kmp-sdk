@@ -24,6 +24,7 @@ kotlin {
             dependencies {
                 implementation(libs.moko.permissions.core)
                 implementation(libs.moko.permissions.microphone)
+                implementation(libs.moko.permissions.camera)
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.lifecycle.runtimeCompose)
             }
@@ -33,6 +34,7 @@ kotlin {
             dependencies {
                 implementation(libs.moko.permissions.core)
                 implementation(libs.moko.permissions.microphone)
+                implementation(libs.moko.permissions.camera)
             }
         }
     }
