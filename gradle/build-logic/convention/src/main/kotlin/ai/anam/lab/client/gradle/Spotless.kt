@@ -20,7 +20,7 @@ fun Project.configureSpotless() {
             ktlint(ktlintVersion)
                 .editorConfigOverride(
                     mapOf(
-                        "compose_allowed_composition_locals" to "LocalPreferences,LocalViewModelGraphProvider",
+                        "compose_allowed_composition_locals" to "LocalPreferences,LocalViewModelGraphProvider,LocalSharedTransitionScope,LocalAnimatedVisibilityScope",
                         "compose_allowed_lambda_parameter_names" to "onFirstFrameRendered",
                     ),
                 )
