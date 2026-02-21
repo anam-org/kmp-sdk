@@ -55,8 +55,10 @@ internal interface StreamingClient {
 
     /**
      * Sends a [UserDataMessage] via the WebRTC [DataChannel].
+     *
+     * @return `true` if the message was sent successfully, `false` otherwise.
      */
-    fun sendDataMessage(message: UserDataMessage)
+    fun sendDataMessage(message: UserDataMessage): Boolean
 
     /**
      * A flow of [SessionEvent]s that the Streaming Client is responsible for reporting.
@@ -257,22 +259,24 @@ internal class StreamingClientImpl(
     /**
      * Attempts to send a [UserDataMessage] via the WebRTC [DataChannel].
      */
-    override fun sendDataMessage(message: UserDataMessage) {
+    override fun sendDataMessage(message: UserDataMessage): Boolean {
         val raw = runCatching { json.encodeToString(message) }.getOrNull() ?: run {
             logger.e(TAG) { "Failed to encode UserDataMessage" }
-            return
+            return false
         }
 
-        sendDataMessage(raw)
+        return sendDataMessage(raw)
     }
 
     /**
      * Attempts to send a raw [String] via the WebRTC [DataChannel].
      */
-    internal fun sendDataMessage(message: String) {
-        if (dataChannel.value?.send(message.toByteArray()) != true) {
+    internal fun sendDataMessage(message: String): Boolean {
+        val result = dataChannel.value?.send(message.toByteArray()) == true
+        if (!result) {
             logger.e(TAG) { "Failed to send data message" }
         }
+        return result
     }
 
     /**

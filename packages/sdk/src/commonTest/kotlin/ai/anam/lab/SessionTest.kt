@@ -13,7 +13,6 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
@@ -312,13 +311,12 @@ class SessionTest {
     }
 
     @Test
-    fun `sendUserMessage throws error when session is not active`() = runTest(testDispatcher) {
+    fun `sendUserMessage returns false when session is not active`() = runTest(testDispatcher) {
         val session = withSession()
 
-        assertFailsWith<IllegalStateException> {
-            session.sendUserMessage("Hello")
-        }
+        val result = session.sendUserMessage("Hello")
 
+        assertThat(result).isFalse()
         assertThat(streamingClient.sentMessages.size).isEqualTo(0)
     }
 
@@ -339,13 +337,12 @@ class SessionTest {
     }
 
     @Test
-    fun `interruptPersona throws error when session is not active`() = runTest(testDispatcher) {
+    fun `interruptPersona returns false when session is not active`() = runTest(testDispatcher) {
         val session = withSession()
 
-        assertFailsWith<IllegalStateException> {
-            session.interruptPersona()
-        }
+        val result = session.interruptPersona()
 
+        assertThat(result).isFalse()
         assertThat(streamingClient.sentMessages.size).isEqualTo(0)
     }
 
