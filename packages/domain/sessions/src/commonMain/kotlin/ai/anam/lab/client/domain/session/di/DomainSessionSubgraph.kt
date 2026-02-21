@@ -7,6 +7,7 @@ import ai.anam.lab.client.domain.session.ObserveActiveMessageHistoryInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionClosedInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionInteractor
 import ai.anam.lab.client.domain.session.ObserveActiveSessionMuteStateInteractor
+import ai.anam.lab.client.domain.session.ObserveActiveToolEventsInteractor
 import ai.anam.lab.client.domain.session.ObserveIsSessionActiveInteractor
 import ai.anam.lab.client.domain.session.SendActiveSessionUserMessageInteractor
 import ai.anam.lab.client.domain.session.StartSessionInteractor
@@ -39,6 +40,18 @@ interface DomainSessionSubgraph {
         return ObserveActiveMessageHistoryInteractor {
             session().flatMapLatest { session ->
                 session?.messages ?: flow { emit(emptyList()) }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Provides
+    fun providesObserveActiveToolEventsInteractor(
+        session: ObserveActiveSessionInteractor,
+    ): ObserveActiveToolEventsInteractor {
+        return ObserveActiveToolEventsInteractor {
+            session().flatMapLatest { session ->
+                session?.toolEvents ?: emptyFlow()
             }
         }
     }

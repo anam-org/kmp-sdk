@@ -7,6 +7,7 @@ import ai.anam.lab.fakes.FakeMessagingClient
 import ai.anam.lab.fakes.FakePlatformSessionManager
 import ai.anam.lab.fakes.FakeSignallingClient
 import ai.anam.lab.fakes.FakeStreamingClient
+import ai.anam.lab.fakes.FakeToolClient
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -29,6 +30,7 @@ class SessionTest {
     private val streamingClient = FakeStreamingClient()
     private val mediaStreamManager = FakeMediaStreamManager()
     private val messagingClient = FakeMessagingClient()
+    private val toolClient = FakeToolClient()
     private val platformSessionManager = FakePlatformSessionManager()
 
     @Test
@@ -184,6 +186,84 @@ class SessionTest {
 
                 messagingClient.emitMessages(secondMessages)
                 assertThat(awaitItem()).isEqualTo(secondMessages)
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
+    fun `toolEvents flow exposes events from tool client`() = runTest(testDispatcher) {
+        withRunningSession { session ->
+            session.toolEvents.test {
+                val testEvent = ToolEvent(
+                    eventUid = "event-1",
+                    sessionId = "session-1",
+                    eventName = "redirect",
+                    eventData = """{"url": "https://example.com"}""",
+                    timestamp = "2024-01-01T00:00:00",
+                    timestampUserAction = "2024-01-01T00:00:01",
+                    userActionCorrelationId = "corr-1",
+                )
+
+                toolClient.emitToolEvent(testEvent)
+
+                assertThat(awaitItem()).isEqualTo(testEvent)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
+    fun `tool events are emitted as SessionEvent ToolCall in events flow`() = runTest(testDispatcher) {
+        withRunningSession { session ->
+            session.events.test {
+                val testEvent = ToolEvent(
+                    eventUid = "event-1",
+                    sessionId = "session-1",
+                    eventName = "redirect",
+                    eventData = "{}",
+                    timestamp = "2024-01-01T00:00:00",
+                    timestampUserAction = "2024-01-01T00:00:00",
+                    userActionCorrelationId = "corr-1",
+                )
+
+                toolClient.emitToolEvent(testEvent)
+
+                assertThat(awaitItem()).isEqualTo(SessionEvent.ToolCall(testEvent))
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
+    fun `multiple tool events are emitted as discrete events`() = runTest(testDispatcher) {
+        withRunningSession { session ->
+            session.toolEvents.test {
+                val event1 = ToolEvent(
+                    eventUid = "event-1",
+                    sessionId = "session-1",
+                    eventName = "redirect",
+                    eventData = "{}",
+                    timestamp = "2024-01-01T00:00:00",
+                    timestampUserAction = "2024-01-01T00:00:00",
+                    userActionCorrelationId = "corr-1",
+                )
+                val event2 = ToolEvent(
+                    eventUid = "event-2",
+                    sessionId = "session-1",
+                    eventName = "show-modal",
+                    eventData = "{}",
+                    timestamp = "2024-01-01T00:00:01",
+                    timestampUserAction = "2024-01-01T00:00:01",
+                    userActionCorrelationId = "corr-2",
+                )
+
+                toolClient.emitToolEvent(event1)
+                assertThat(awaitItem()).isEqualTo(event1)
+
+                toolClient.emitToolEvent(event2)
+                assertThat(awaitItem()).isEqualTo(event2)
 
                 cancelAndIgnoreRemainingEvents()
             }
@@ -391,6 +471,7 @@ class SessionTest {
         streamingClient = streamingClient,
         mediaStreamManager = mediaStreamManager,
         messagingClient = messagingClient,
+        toolClient = toolClient,
         sessionManager = platformSessionManager,
         logger = logger,
         isLoggingEnabled = false,

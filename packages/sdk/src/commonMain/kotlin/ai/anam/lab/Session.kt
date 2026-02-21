@@ -6,6 +6,7 @@ import ai.anam.lab.webrtc.MediaStreamManager
 import ai.anam.lab.webrtc.MessagingClient
 import ai.anam.lab.webrtc.SignallingClient
 import ai.anam.lab.webrtc.StreamingClient
+import ai.anam.lab.webrtc.ToolClient
 import com.shepeliev.webrtckmp.AudioTrack
 import com.shepeliev.webrtckmp.VideoTrack
 import kotlin.concurrent.atomics.AtomicBoolean
@@ -57,6 +58,7 @@ public class Session internal constructor(
     private val streamingClient: StreamingClient,
     private val mediaStreamManager: MediaStreamManager,
     private val messagingClient: MessagingClient,
+    private val toolClient: ToolClient,
     private val sessionManager: PlatformSessionManager,
     private val logger: Logger,
     private val isLoggingEnabled: Boolean = true,
@@ -127,6 +129,13 @@ public class Session internal constructor(
      */
     public val messages: Flow<List<Message>> = _messages.asStateFlow()
 
+    private val _toolEvents = MutableSharedFlow<ToolEvent>(extraBufferCapacity = 1)
+
+    /**
+     * The [ToolEvent]s associated with this [Session]. These represent tool calls requested by the Persona.
+     */
+    public val toolEvents: Flow<ToolEvent> = _toolEvents.asSharedFlow()
+
     // Internally, we track all the jobs we have scheduled. This will allow us to cancel them as soon as we detect an
     // error with any one of our required infrastructure.
     private val jobs = mutableListOf<Job>()
@@ -160,10 +169,25 @@ public class Session internal constructor(
                 }
             }
 
+            // Collect tool events from the ToolClient and forward them to both the dedicated tool events flow and the
+            // unified session events flow.
+            jobs += launch {
+                toolClient.toolEvents.collect { event ->
+                    _toolEvents.emit(event)
+                    localEvents.emit(SessionEvent.ToolCall(event))
+                }
+            }
+
             if (isLoggingEnabled) {
                 jobs += launch {
                     messages.collect { message ->
                         logger.i(TAG) { "Message History: $message" }
+                    }
+                }
+
+                jobs += launch {
+                    toolEvents.collect { event ->
+                        logger.i(TAG) { "Tool Event: $event" }
                     }
                 }
 

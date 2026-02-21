@@ -18,6 +18,7 @@ import ai.anam.lab.webrtc.MediaStreamManagerImpl
 import ai.anam.lab.webrtc.MessagingClientImpl
 import ai.anam.lab.webrtc.SignallingClientImpl
 import ai.anam.lab.webrtc.StreamingClientImpl
+import ai.anam.lab.webrtc.ToolClientImpl
 import com.appstractive.jwt.JWT
 import com.appstractive.jwt.from
 import de.jensklingenberg.ktorfit.Ktorfit
@@ -115,6 +116,7 @@ public class AnamClient(internal val options: AnamClientOptions) {
                         streamingClient = streamingClient,
                         mediaStreamManager = mediaStreamManager,
                         messagingClient = MessagingClientImpl(streamingClient, logger),
+                        toolClient = ToolClientImpl(streamingClient, logger),
                         sessionManager = createPlatformSessionManager(options.context, logger),
                         logger = logger,
                     ),
