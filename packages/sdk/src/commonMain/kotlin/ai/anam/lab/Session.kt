@@ -1,6 +1,11 @@
 package ai.anam.lab
 
 import ai.anam.lab.api.UserDataMessage
+import ai.anam.lab.metrics.ClientMetric
+import ai.anam.lab.metrics.ClientTags
+import ai.anam.lab.metrics.MetricsClient
+import ai.anam.lab.metrics.NoOpMetricsClient
+import ai.anam.lab.metrics.toMetricValue
 import ai.anam.lab.utils.Logger
 import ai.anam.lab.webrtc.MediaStreamManager
 import ai.anam.lab.webrtc.MessagingClient
@@ -12,6 +17,7 @@ import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Clock
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +31,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Internal data class that represents the two remote Tracks from the Persona.
@@ -58,11 +65,13 @@ public class Session internal constructor(
     private val mediaStreamManager: MediaStreamManager,
     private val messagingClient: MessagingClient,
     private val sessionManager: PlatformSessionManager,
+    private val metricsClient: MetricsClient = NoOpMetricsClient,
     private val logger: Logger,
     private val isLoggingEnabled: Boolean = true,
     private val clock: Clock = Clock.System,
 ) {
     private val _isActive = AtomicBoolean(false)
+    private val connectionClosedMetricSent = AtomicBoolean(false)
 
     /**
      * Whether the session is actively streaming. This property is thread-safe and may be read from any thread.
@@ -151,6 +160,26 @@ public class Session internal constructor(
                 launch { action() }
             }
 
+            // Collect session events and send corresponding metrics.
+            jobs += launch {
+                events.collect { event ->
+                    when (event) {
+                        is SessionEvent.ConnectionEstablished ->
+                            metricsClient.send(ClientMetric.ConnectionEstablished)
+                        is SessionEvent.VideoPlayStarted ->
+                            metricsClient.send(ClientMetric.SessionSuccess)
+                        is SessionEvent.ConnectionClosed -> {
+                            connectionClosedMetricSent.store(true)
+                            metricsClient.send(
+                                ClientMetric.ConnectionClosed,
+                                tags = mapOf(ClientTags.REASON to event.reason.toMetricValue()),
+                            )
+                        }
+                        else -> Unit
+                    }
+                }
+            }
+
             // Collect any incoming messages from the MessagingClient so that we can expose them to the consumer. If we
             // just provided direct access to the flow from the MessagingClient, then these messages would only be
             // available if collected. This way, we tied the set of messages to the scope of this Session.
@@ -180,12 +209,24 @@ public class Session internal constructor(
 
             // If we've detected that our connection has been closed, we need to manually cancel all of our jobs. This
             // will prevent us from keeping one connection open while the other(s) have failed. In the event of our
-            // main coroutine context being cancelled, these will effectively be a no-op.
+            // main coroutine context being canceled, these will effectively be a no-op.
             jobs.forEach { job -> job.cancel() }
             jobs.clear()
 
+            // If no ConnectionClosed metric was sent by the event collector (e.g. the parent scope was
+            // canceled), send it now. NonCancellable ensures the HTTP call completes even in a canceled scope.
+            if (!connectionClosedMetricSent.load()) {
+                withContext(NonCancellable) {
+                    metricsClient.send(
+                        ClientMetric.ConnectionClosed,
+                        tags = mapOf(ClientTags.REASON to ConnectionClosedReason.Normal.toMetricValue()),
+                    )
+                }
+            }
+
             // Release any additional resources.
             mediaStreamManager.release()
+            metricsClient.close()
         }
     }
 

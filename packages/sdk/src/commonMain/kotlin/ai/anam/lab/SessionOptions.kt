@@ -22,4 +22,9 @@ public data class SessionOptions(
      * Configuration for voice detection and the sensitivity when detecting the end of speech.
      */
     val endOfSpeechSensitivity: Int? = null,
+
+    /**
+     * When `true`, client-side metrics collection is disabled. Metrics are enabled by default.
+     */
+    val isMetricsDisabled: Boolean = false,
 )
