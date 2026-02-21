@@ -100,8 +100,10 @@ internal class SignallingClientImpl(
                 URLProtocol.WSS
             }
 
-            // The engine host could potentially contain the (or part of the) path, so we need to strip it.
-            host = config.engineHost.split("/").first()
+            // Strip any path components from the engine host. Note: this does not handle IPv6 bracket
+            // notation (e.g. [::1]) or explicit port suffixes (e.g. host:8080). If those are needed in the
+            // future, consider parsing with URLBuilder("https://$engineHost") and extracting host/port.
+            host = config.engineHost.substringBefore("/")
 
             path(config.signallingEndpoint ?: DEFAULT_SIGNALLING_PATH)
             parameters.append(PARAM_SESSION_ID, config.sessionId)
@@ -142,9 +144,11 @@ internal class SignallingClientImpl(
     override suspend fun connect() = coroutineScope {
         withContext(ioDispatcher) {
             var count = 0
+            // maxReconnectionAttempts is the number of retries after the initial connection attempt,
+            // so total attempts = maxReconnectionAttempts + 1.
             while (count <= maxReconnectionAttempts) {
                 try {
-                    logger.i(TAG) { "Attempting to connected via WebSocket (attempt: $count, url: $url)" }
+                    logger.i(TAG) { "Attempting to connect via WebSocket (attempt: ${count + 1}, url: $url)" }
                     count++
 
                     httpClient.webSocket(urlString = url.toString()) {
@@ -212,6 +216,10 @@ internal class SignallingClientImpl(
                     _connected.value = false
                 }
             }
+
+            // Close the outgoing channel so buffered messages are released and any suspended send() calls
+            // are cancelled.
+            outgoingChannel.close()
 
             // We've now failed to connect after our maximum number of attempts.
             _events.emit(
