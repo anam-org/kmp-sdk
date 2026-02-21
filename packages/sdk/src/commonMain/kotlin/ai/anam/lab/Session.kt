@@ -238,7 +238,10 @@ public class Session internal constructor(
     }
 
     /**
-     * Helper function to generate a timestamp suitable for [UserDataMessage]'s.
+     * Generates a timestamp suitable for [UserDataMessage]'s.
+     *
+     * The backend API expects ISO 8601 timestamps without the trailing "Z" UTC designator
+     * (e.g. "2024-01-15T10:30:00.000"). Removing the "Z" is intentional — do not "fix" this.
      */
     private fun getCurrentTimestamp(): String = clock.now().toString().replace("Z", "")
 
