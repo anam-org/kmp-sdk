@@ -134,12 +134,12 @@ class SessionRepository(
 
         val isMute = _isAudioMute.value
         if (isMute) {
-            logger.i(TAG) { "Muting local audio" }
-            session.isLocalAudioMuted = false
+            logger.i(TAG) { "Unmuting local audio" }
+            session.setLocalAudioMuted(false)
             _isAudioMute.value = false
         } else {
-            logger.i(TAG) { "Unmuting local audio" }
-            session.isLocalAudioMuted = true
+            logger.i(TAG) { "Muting local audio" }
+            session.setLocalAudioMuted(true)
             _isAudioMute.value = true
         }
     }

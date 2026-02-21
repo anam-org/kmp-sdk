@@ -353,13 +353,13 @@ class SessionTest {
     }
 
     @Test
-    fun `setting isLocalAudioMuted updates mediaStreamManager`() = runTest(testDispatcher) {
+    fun `setLocalAudioMuted updates mediaStreamManager`() = runTest(testDispatcher) {
         val session = withSession()
 
-        session.isLocalAudioMuted = true
+        session.setLocalAudioMuted(true)
         assertThat(mediaStreamManager.isLocalAudioMuted).isTrue()
 
-        session.isLocalAudioMuted = false
+        session.setLocalAudioMuted(false)
         assertThat(mediaStreamManager.isLocalAudioMuted).isFalse()
     }
 

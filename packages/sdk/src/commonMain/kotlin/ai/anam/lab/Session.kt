@@ -71,13 +71,20 @@ public class Session internal constructor(
         get() = _isActive.load()
 
     /**
-     * Flag to mute or unmute the local audio stream (microphone). This can be set before the session has started.
+     * Whether the local audio stream (microphone) is currently muted.
      */
-    public var isLocalAudioMuted: Boolean
+    public val isLocalAudioMuted: Boolean
         get() = mediaStreamManager.isLocalAudioMuted
-        set(value) {
-            mediaStreamManager.isLocalAudioMuted = value
-        }
+
+    /**
+     * Mutes or unmutes the local audio stream (microphone). This can be called before the session has started;
+     * the mute state will be applied once the audio stream is initialized.
+     *
+     * @param muted `true` to mute the microphone, `false` to unmute.
+     */
+    public fun setLocalAudioMuted(muted: Boolean) {
+        mediaStreamManager.isLocalAudioMuted = muted
+    }
 
     /**
      * Access to the AudioTrack and VideoTrack that the Persona will be rendered using. This is internal, to allow it to
