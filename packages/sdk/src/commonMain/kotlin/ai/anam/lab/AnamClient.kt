@@ -16,6 +16,7 @@ import ai.anam.lab.utils.Logger
 import ai.anam.lab.utils.cancellableRunCatching
 import ai.anam.lab.webrtc.MediaStreamManagerImpl
 import ai.anam.lab.webrtc.MessagingClientImpl
+import ai.anam.lab.webrtc.ReasoningClientImpl
 import ai.anam.lab.webrtc.SignallingClientImpl
 import ai.anam.lab.webrtc.StreamingClientImpl
 import com.appstractive.jwt.JWT
@@ -115,6 +116,7 @@ public class AnamClient(internal val options: AnamClientOptions) {
                         streamingClient = streamingClient,
                         mediaStreamManager = mediaStreamManager,
                         messagingClient = MessagingClientImpl(streamingClient, logger),
+                        reasoningClient = ReasoningClientImpl(streamingClient, logger),
                         sessionManager = createPlatformSessionManager(options.context, logger),
                         logger = logger,
                     ),

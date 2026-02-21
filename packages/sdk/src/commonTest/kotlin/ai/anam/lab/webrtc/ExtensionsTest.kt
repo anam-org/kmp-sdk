@@ -2,6 +2,7 @@ package ai.anam.lab.webrtc
 
 import ai.anam.lab.Message
 import ai.anam.lab.MessageRole
+import ai.anam.lab.ReasoningMessage
 import ai.anam.lab.ToolEvent
 import ai.anam.lab.api.ClientConfig
 import ai.anam.lab.api.DataChannelMessagePayload
@@ -229,6 +230,52 @@ class ExtensionsTest {
                 role = MessageRole.User,
                 endOfSpeech = false,
                 interrupted = true,
+                version = 1,
+            ),
+        )
+    }
+
+    @Test
+    fun `ReasoningTextMessage toReasoningMessage converts correctly for persona role`() {
+        val reasoningMessage = DataChannelMessagePayload.ReasoningTextMessage(
+            id = "msg-123",
+            index = 0,
+            content = "Let me think...",
+            role = "persona",
+            endOfThought = false,
+        )
+
+        val result = reasoningMessage.toReasoningMessage()
+
+        assertThat(result).isEqualTo(
+            ReasoningMessage(
+                id = "persona::msg-123",
+                content = "Let me think...",
+                role = MessageRole.Persona,
+                endOfThought = false,
+                version = 1,
+            ),
+        )
+    }
+
+    @Test
+    fun `ReasoningTextMessage toReasoningMessage converts correctly for user role`() {
+        val reasoningMessage = DataChannelMessagePayload.ReasoningTextMessage(
+            id = "msg-456",
+            index = 1,
+            content = "Thinking about user input",
+            role = "user",
+            endOfThought = true,
+        )
+
+        val result = reasoningMessage.toReasoningMessage()
+
+        assertThat(result).isEqualTo(
+            ReasoningMessage(
+                id = "user::msg-456",
+                content = "Thinking about user input",
+                role = MessageRole.User,
+                endOfThought = true,
                 version = 1,
             ),
         )

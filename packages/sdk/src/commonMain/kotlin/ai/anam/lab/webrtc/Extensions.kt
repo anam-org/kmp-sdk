@@ -4,6 +4,7 @@ import ai.anam.lab.Message
 import ai.anam.lab.MessageRole
 import ai.anam.lab.MessageRole.Persona
 import ai.anam.lab.MessageRole.User
+import ai.anam.lab.ReasoningMessage
 import ai.anam.lab.ToolEvent
 import ai.anam.lab.api.ClientConfig
 import ai.anam.lab.api.DataChannelMessagePayload
@@ -111,6 +112,18 @@ internal fun DataChannelMessagePayload.TextMessage.toMessage(): Message {
         role = MessageRole.fromString(role),
         endOfSpeech = endOfSpeech,
         interrupted = interrupted,
+    )
+}
+
+/**
+ * Converts an API [DataChannelMessagePayload.ReasoningTextMessage] to a [ReasoningMessage].
+ */
+internal fun DataChannelMessagePayload.ReasoningTextMessage.toReasoningMessage(): ReasoningMessage {
+    return ReasoningMessage(
+        id = "$role::$id",
+        content = content,
+        role = MessageRole.fromString(role),
+        endOfThought = endOfThought,
     )
 }
 

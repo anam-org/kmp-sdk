@@ -5,6 +5,7 @@ import ai.anam.lab.fakes.FakeLogger
 import ai.anam.lab.fakes.FakeMediaStreamManager
 import ai.anam.lab.fakes.FakeMessagingClient
 import ai.anam.lab.fakes.FakePlatformSessionManager
+import ai.anam.lab.fakes.FakeReasoningClient
 import ai.anam.lab.fakes.FakeSignallingClient
 import ai.anam.lab.fakes.FakeStreamingClient
 import app.cash.turbine.test
@@ -30,6 +31,7 @@ class SessionTest {
     private val streamingClient = FakeStreamingClient()
     private val mediaStreamManager = FakeMediaStreamManager()
     private val messagingClient = FakeMessagingClient()
+    private val reasoningClient = FakeReasoningClient()
     private val platformSessionManager = FakePlatformSessionManager()
 
     @Test
@@ -184,6 +186,65 @@ class SessionTest {
                 val secondMessages = listOf(withMessage(content = " world", id = "msg-1"))
 
                 messagingClient.emitMessages(secondMessages)
+                assertThat(awaitItem()).isEqualTo(secondMessages)
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
+    fun `reasoningMessages flow exposes messages from reasoning client`() = runTest(testDispatcher) {
+        withRunningSession { session ->
+            session.reasoningMessages.test {
+                assertThat(awaitItem()).isEqualTo(emptyList())
+
+                val testMessages = listOf(
+                    ReasoningMessage(
+                        id = "persona::msg-1",
+                        content = "Let me think",
+                        role = MessageRole.Persona,
+                        endOfThought = false,
+                    ),
+                )
+
+                reasoningClient.emitReasoningMessages(testMessages)
+
+                assertThat(awaitItem()).isEqualTo(testMessages)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
+    fun `reasoningMessages flow handles multiple reasoning updates`() = runTest(testDispatcher) {
+        withRunningSession { session ->
+            session.reasoningMessages.test {
+                assertThat(awaitItem()).isEqualTo(emptyList())
+
+                val firstMessages = listOf(
+                    ReasoningMessage(
+                        id = "persona::msg-1",
+                        content = "Let me",
+                        role = MessageRole.Persona,
+                        endOfThought = false,
+                    ),
+                )
+
+                reasoningClient.emitReasoningMessages(firstMessages)
+                assertThat(awaitItem()).isEqualTo(firstMessages)
+
+                val secondMessages = listOf(
+                    ReasoningMessage(
+                        id = "persona::msg-1",
+                        content = "Let me think",
+                        role = MessageRole.Persona,
+                        endOfThought = true,
+                        version = 2,
+                    ),
+                )
+
+                reasoningClient.emitReasoningMessages(secondMessages)
                 assertThat(awaitItem()).isEqualTo(secondMessages)
 
                 cancelAndIgnoreRemainingEvents()
@@ -394,6 +455,7 @@ class SessionTest {
         streamingClient = streamingClient,
         mediaStreamManager = mediaStreamManager,
         messagingClient = messagingClient,
+        reasoningClient = reasoningClient,
         sessionManager = platformSessionManager,
         logger = logger,
         isLoggingEnabled = false,
