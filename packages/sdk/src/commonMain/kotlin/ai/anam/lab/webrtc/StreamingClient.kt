@@ -31,6 +31,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -110,8 +111,12 @@ internal class StreamingClientImpl(
 
     private val remoteTrack = peerConnection.flatMapLatest { peerConnection -> peerConnection.onTrack }
 
-    // The event bus.
-    private val _events = MutableSharedFlow<SessionEvent>(extraBufferCapacity = 5)
+    // The event bus. Uses DROP_OLDEST to ensure terminal events like ConnectionClosed are never lost
+    // when the buffer is full.
+    private val _events = MutableSharedFlow<SessionEvent>(
+        extraBufferCapacity = 5,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
     override val events: Flow<SessionEvent> = _events.asSharedFlow()
 
     /**

@@ -12,6 +12,7 @@ import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Clock
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -91,7 +92,11 @@ public class Session internal constructor(
     }
 
     // A local flow of events that the session can emit itself (e.g. first video frame rendered).
-    private val localEvents = MutableSharedFlow<SessionEvent>(extraBufferCapacity = 1)
+    // Uses DROP_OLDEST to ensure the flow never blocks emitters for non-critical local events.
+    private val localEvents = MutableSharedFlow<SessionEvent>(
+        extraBufferCapacity = 5,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
 
     /**
      * The [SessionEvent]s associated with this [Session].
