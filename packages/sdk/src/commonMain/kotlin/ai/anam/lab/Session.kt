@@ -9,6 +9,7 @@ import ai.anam.lab.metrics.toMetricValue
 import ai.anam.lab.utils.Logger
 import ai.anam.lab.webrtc.MediaStreamManager
 import ai.anam.lab.webrtc.MessagingClient
+import ai.anam.lab.webrtc.ReasoningClient
 import ai.anam.lab.webrtc.SignallingClient
 import ai.anam.lab.webrtc.StreamingClient
 import com.shepeliev.webrtckmp.AudioTrack
@@ -64,6 +65,7 @@ public class Session internal constructor(
     private val streamingClient: StreamingClient,
     private val mediaStreamManager: MediaStreamManager,
     private val messagingClient: MessagingClient,
+    private val reasoningClient: ReasoningClient,
     private val sessionManager: PlatformSessionManager,
     private val metricsClient: MetricsClient = NoOpMetricsClient,
     private val logger: Logger,
@@ -136,6 +138,13 @@ public class Session internal constructor(
      */
     public val messages: Flow<List<Message>> = _messages.asStateFlow()
 
+    private val _reasoningMessages = MutableStateFlow<List<ReasoningMessage>>(emptyList())
+
+    /**
+     * The [ReasoningMessage]s associated with this [Session]. These represent the Persona's chain-of-thought reasoning.
+     */
+    public val reasoningMessages: Flow<List<ReasoningMessage>> = _reasoningMessages.asStateFlow()
+
     // Internally, we track all the jobs we have scheduled. This will allow us to cancel them as soon as we detect an
     // error with any one of our required infrastructure.
     private val jobs = mutableListOf<Job>()
@@ -189,10 +198,23 @@ public class Session internal constructor(
                 }
             }
 
+            // Collect any incoming reasoning messages from the ReasoningClient.
+            jobs += launch {
+                reasoningClient.reasoningMessages.collect { messages ->
+                    _reasoningMessages.value = messages
+                }
+            }
+
             if (isLoggingEnabled) {
                 jobs += launch {
-                    messages.collect { message ->
-                        logger.i(TAG) { "Message History: $message" }
+                    messages.collect { messages ->
+                        logger.i(TAG) { "Message History: $messages" }
+                    }
+                }
+
+                jobs += launch {
+                    reasoningMessages.collect { messages ->
+                        logger.i(TAG) { "Reasoning History: $messages" }
                     }
                 }
 

@@ -2,6 +2,7 @@ package ai.anam.lab.api
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlinx.serialization.SerializationException
@@ -29,6 +30,22 @@ class DataChannelApiTest {
     }
 
     @Test
+    fun `ReasoningTextMessage serializes and deserializes correctly`() {
+        testSerialization(
+            DataChannelMessage(
+                type = DataChannelMessageType.ReasoningText,
+                data = DataChannelMessagePayload.ReasoningTextMessage(
+                    id = "msg-456",
+                    index = 0,
+                    content = "Let me think about this",
+                    role = "persona",
+                    endOfThought = false,
+                ),
+            ),
+        )
+    }
+
+    @Test
     fun `ClientToolMessage serializes and deserializes correctly`() {
         testSerialization(
             DataChannelMessage(
@@ -45,6 +62,33 @@ class DataChannelApiTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `ReasoningTextMessage deserializes correctly from raw JSON`() {
+        val rawJson = """
+            {
+                "messageType": "reasoningText",
+                "data": {
+                    "message_id": "msg-1",
+                    "content_index": 0,
+                    "content": "thinking",
+                    "role": "persona",
+                    "end_of_thought": false
+                }
+            }
+        """.trimIndent()
+        val result = json.decodeFromString(DataChannelMessage.serializer(), rawJson)
+        assertThat(result.type).isEqualTo(DataChannelMessageType.ReasoningText)
+        assertThat(result.data)
+            .isInstanceOf<DataChannelMessagePayload.ReasoningTextMessage>()
+
+        val reasoning = result.data as DataChannelMessagePayload.ReasoningTextMessage
+        assertThat(reasoning.id).isEqualTo("msg-1")
+        assertThat(reasoning.index).isEqualTo(0)
+        assertThat(reasoning.content).isEqualTo("thinking")
+        assertThat(reasoning.role).isEqualTo("persona")
+        assertThat(reasoning.endOfThought).isEqualTo(false)
     }
 
     @Test

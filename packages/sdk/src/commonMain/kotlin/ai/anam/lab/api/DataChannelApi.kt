@@ -29,6 +29,9 @@ internal enum class DataChannelMessageType {
 
     @SerialName("clientToolEvent")
     ClientToolEvent,
+
+    @SerialName("reasoningText")
+    ReasoningText,
 }
 
 @Serializable(with = DataChannelMessagePayloadSerializer::class)
@@ -53,6 +56,24 @@ internal sealed interface DataChannelMessagePayload {
 
         @SerialName("interrupted")
         val interrupted: Boolean,
+    ) : DataChannelMessagePayload
+
+    @Serializable
+    data class ReasoningTextMessage(
+        @SerialName("message_id")
+        val id: String,
+
+        @SerialName("content_index")
+        val index: Int,
+
+        @SerialName("content")
+        val content: String,
+
+        @SerialName("role")
+        val role: String,
+
+        @SerialName("end_of_thought")
+        val endOfThought: Boolean,
     ) : DataChannelMessagePayload
 
     @Serializable
@@ -128,6 +149,7 @@ internal object DataChannelMessagePayloadSerializer :
     override fun selectDeserializer(element: JsonElement): KSerializer<out DataChannelMessagePayload> {
         val jsonObject = element.jsonObject
         return when {
+            jsonObject.containsKey("end_of_thought") -> DataChannelMessagePayload.ReasoningTextMessage.serializer()
             jsonObject.containsKey("message_id") -> DataChannelMessagePayload.TextMessage.serializer()
             jsonObject.containsKey("event_uid") -> DataChannelMessagePayload.ClientToolMessage.serializer()
             else -> throw SerializationException("Unknown DataChannelMessage type: $jsonObject")
