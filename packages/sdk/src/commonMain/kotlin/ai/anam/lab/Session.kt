@@ -180,15 +180,12 @@ public class Session internal constructor(
     /**
      * Sends a user text message in the active streaming session.
      *
-     * @throws IllegalStateException if the session is not active.
+     * @return `true` if the message was sent successfully, `false` if the session is not active or the send failed.
      */
-    public fun sendUserMessage(content: String) {
-        if (!isActive) {
-            error("Session is not active")
-        }
+    public fun sendUserMessage(content: String): Boolean {
+        if (!isActive) return false
 
-        // Attempt to send the Message through our WebRTC DataChannel.
-        streamingClient.sendDataMessage(
+        return streamingClient.sendDataMessage(
             UserDataMessage.UserTextMessage(
                 content = content,
                 sessionId = id,
@@ -200,15 +197,12 @@ public class Session internal constructor(
     /**
      * Interrupts the Persona in the active streaming session.
      *
-     * @throws IllegalStateException if the session is not active.
+     * @return `true` if the interrupt was sent successfully, `false` if the session is not active or the send failed.
      */
-    public fun interruptPersona() {
-        if (!isActive) {
-            error("Session is not active")
-        }
+    public fun interruptPersona(): Boolean {
+        if (!isActive) return false
 
-        // Attempt to send the Message through our WebRTC DataChannel.
-        streamingClient.sendDataMessage(
+        return streamingClient.sendDataMessage(
             UserDataMessage.PersonaInterruptMessage(
                 sessionId = id,
                 timestamp = getCurrentTimestamp(),

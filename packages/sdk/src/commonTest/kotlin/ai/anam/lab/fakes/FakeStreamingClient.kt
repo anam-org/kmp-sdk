@@ -55,7 +55,8 @@ internal class FakeStreamingClient : StreamingClient {
         }
     }
 
-    override fun sendDataMessage(message: UserDataMessage) {
+    override fun sendDataMessage(message: UserDataMessage): Boolean {
         sentMessages.add(message)
+        return true
     }
 }
