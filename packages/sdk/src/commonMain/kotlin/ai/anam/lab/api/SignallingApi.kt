@@ -178,6 +178,19 @@ internal enum class RTCIceCandidateType {
     Relay,
 }
 
+/**
+ * Custom serializer for [SignalMessage] that handles polymorphic payload deserialization based on [SignalMessageType].
+ *
+ * This is necessary because the payload type varies by `actionType`, and the server sends some payloads as raw strings
+ * (e.g. EndSession, Warning) rather than structured JSON objects. Standard polymorphic serialization cannot handle
+ * this mix of raw strings and typed objects for the same field.
+ *
+ * Serialization: Raw payloads are encoded as plain strings; typed payloads use the serializer from
+ * [getSerializerForType].
+ *
+ * Deserialization: The `actionType` field must be decoded before `payload` so the correct deserializer can be selected.
+ * Both sequential and random-order decoding are supported.
+ */
 private object SignalMessageSerializer : KSerializer<SignalMessage> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SignalMessage") {
         element("actionType", serialDescriptor<SignalMessageType>())
@@ -190,6 +203,7 @@ private object SignalMessageSerializer : KSerializer<SignalMessage> {
             encodeSerializableElement(descriptor, 0, SignalMessageType.serializer(), value.actionType)
             encodeStringElement(descriptor, 1, value.sessionId)
 
+            // Raw payloads (EndSession, Warning) are encoded as plain strings rather than structured JSON.
             val rawPayload = value.payload as? SignalMessagePayload.Raw
             if (rawPayload != null) {
                 encodeStringElement(descriptor, 2, rawPayload.value)
@@ -209,12 +223,12 @@ private object SignalMessageSerializer : KSerializer<SignalMessage> {
             lateinit var payload: SignalMessagePayload
 
             if (decodeSequentially()) {
-                // Decode in order
                 actionType = decodeSerializableElement(descriptor, 0, SignalMessageType.serializer())
                 sessionId = decodeStringElement(descriptor, 1)
                 payload = decodeForActionType(descriptor, 2, actionType)
             } else {
-                // Decode elements in any order
+                // When fields arrive in arbitrary order, we must decode actionType before payload
+                // so we know which deserializer to use.
                 while (true) {
                     when (val index = decodeElementIndex(descriptor)) {
                         0 -> actionType = decodeSerializableElement(descriptor, 0, SignalMessageType.serializer())
@@ -230,6 +244,9 @@ private object SignalMessageSerializer : KSerializer<SignalMessage> {
         }
     }
 
+    /**
+     * Decodes the payload field using the appropriate strategy based on [actionType].
+     */
     private fun CompositeDecoder.decodeForActionType(
         descriptor: SerialDescriptor,
         index: Int,
