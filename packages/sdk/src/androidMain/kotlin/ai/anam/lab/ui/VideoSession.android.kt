@@ -1,6 +1,7 @@
 package ai.anam.lab.ui
 
 import ai.anam.lab.SessionTracks
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -90,9 +91,11 @@ internal actual fun VideoSession(tracks: SessionTracks, onFirstFrameRendered: ()
 private fun VideoTrack.addSinkCatching(sink: VideoSink) {
     // runCatching as track may be disposed while activity was in pause
     runCatching { addSink(sink) }
+        .onFailure { Log.w("VideoSession", "Failed to add sink to video track", it) }
 }
 
 private fun VideoTrack.removeSinkCatching(sink: VideoSink) {
     // runCatching as track may be disposed while activity was in pause
     runCatching { removeSink(sink) }
+        .onFailure { Log.w("VideoSession", "Failed to remove sink from video track", it) }
 }
