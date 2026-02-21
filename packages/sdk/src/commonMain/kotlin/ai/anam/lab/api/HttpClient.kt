@@ -41,6 +41,16 @@ internal fun buildApiHttpClient(token: String) = HttpClient {
     expectSuccess = true
 }
 
+/**
+ * Builds an [HttpClient] for fire-and-forget metrics calls. No authentication is installed and non-2xx responses are
+ * silently accepted.
+ */
+internal fun buildMetricsHttpClient() = HttpClient {
+    install(ContentNegotiation) {
+        json(defaultJsonConfiguration)
+    }
+}
+
 internal fun buildWebSocketClient() = HttpClient {
     install(WebSockets) {
         contentConverter = KotlinxWebsocketSerializationConverter(defaultJsonConfiguration)

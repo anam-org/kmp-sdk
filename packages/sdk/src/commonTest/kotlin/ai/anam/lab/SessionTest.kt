@@ -4,14 +4,18 @@ import ai.anam.lab.api.UserDataMessage
 import ai.anam.lab.fakes.FakeLogger
 import ai.anam.lab.fakes.FakeMediaStreamManager
 import ai.anam.lab.fakes.FakeMessagingClient
+import ai.anam.lab.fakes.FakeMetricsClient
 import ai.anam.lab.fakes.FakePlatformSessionManager
 import ai.anam.lab.fakes.FakeSignallingClient
 import ai.anam.lab.fakes.FakeStreamingClient
+import ai.anam.lab.metrics.ClientMetric
 import app.cash.turbine.test
 import assertk.assertThat
+import assertk.assertions.any
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
+import assertk.assertions.prop
 import kotlin.test.Test
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -30,6 +34,7 @@ class SessionTest {
     private val mediaStreamManager = FakeMediaStreamManager()
     private val messagingClient = FakeMessagingClient()
     private val platformSessionManager = FakePlatformSessionManager()
+    private val metricsClient = FakeMetricsClient()
 
     @Test
     fun `session id is correctly set`() = runTest(testDispatcher) {
@@ -363,6 +368,47 @@ class SessionTest {
         assertThat(mediaStreamManager.isLocalAudioMuted).isFalse()
     }
 
+    @Test
+    fun `ConnectionEstablished event sends metric`() = runTest(testDispatcher) {
+        withRunningSession { _ ->
+            signallingClient.emitEvent(SessionEvent.ConnectionEstablished)
+            runCurrent()
+
+            assertThat(metricsClient.sentMetrics).any {
+                it.prop(FakeMetricsClient.SentMetric::metric).isEqualTo(ClientMetric.ConnectionEstablished)
+            }
+        }
+    }
+
+    @Test
+    fun `VideoPlayStarted sends SessionSuccess metric`() = runTest(testDispatcher) {
+        withRunningSession { session ->
+            session.onFirstFrameRendered()
+            runCurrent()
+
+            assertThat(metricsClient.sentMetrics).any {
+                it.prop(FakeMetricsClient.SentMetric::metric).isEqualTo(ClientMetric.SessionSuccess)
+            }
+        }
+    }
+
+    @Test
+    fun `ConnectionClosed sends metric with reason tag`() = runTest(testDispatcher) {
+        val session = withSession()
+        val job = launch { session.start() }
+        runCurrent()
+
+        signallingClient.emitEvent(SessionEvent.ConnectionClosed(ConnectionClosedReason.Normal))
+        runCurrent()
+
+        assertThat(metricsClient.sentMetrics).any {
+            it.prop(FakeMetricsClient.SentMetric::metric).isEqualTo(ClientMetric.ConnectionClosed)
+            it.prop(FakeMetricsClient.SentMetric::tags).isEqualTo(mapOf("reason" to "normal"))
+        }
+
+        job.cancel()
+    }
+
     /**
      * Helper function that creates a session, starts it, advances the dispatcher, executes the test body, and ensures
      * proper cleanup by cancelling the session job.
@@ -392,6 +438,7 @@ class SessionTest {
         mediaStreamManager = mediaStreamManager,
         messagingClient = messagingClient,
         sessionManager = platformSessionManager,
+        metricsClient = metricsClient,
         logger = logger,
         isLoggingEnabled = false,
     )

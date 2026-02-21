@@ -7,10 +7,17 @@ import ai.anam.lab.api.SessionConfig
 import ai.anam.lab.api.VoiceDetectionOptions
 import ai.anam.lab.api.apiCall
 import ai.anam.lab.api.buildApiHttpClient
+import ai.anam.lab.api.buildMetricsHttpClient
 import ai.anam.lab.api.buildWebSocketClient
 import ai.anam.lab.api.cause
 import ai.anam.lab.api.createSessionApi
 import ai.anam.lab.api.message
+import ai.anam.lab.metrics.ClientMetric
+import ai.anam.lab.metrics.ClientTags
+import ai.anam.lab.metrics.MetricsClient
+import ai.anam.lab.metrics.MetricsClientImpl
+import ai.anam.lab.metrics.MetricsContext
+import ai.anam.lab.metrics.NoOpMetricsClient
 import ai.anam.lab.utils.KermitLogger
 import ai.anam.lab.utils.Logger
 import ai.anam.lab.utils.cancellableRunCatching
@@ -66,6 +73,12 @@ public class AnamClient(internal val options: AnamClientOptions) {
         // the provide token), as well as content negotiation. This is a different configuration to that later used by
         // our signalling infrastructure.
         val httpClient = buildApiHttpClient(sessionToken)
+
+        // Build a metrics client with its own HttpClient (no auth, no expectSuccess) so that metric calls are
+        // independent of the session API client lifecycle and credentials.
+        val metricsClient = buildMetricsClient(sessionOptions)
+        metricsClient.send(ClientMetric.SessionAttempt)
+
         val ktorfit = Ktorfit.Builder()
             .httpClient(httpClient)
             .baseUrl(options.environment.baseUrl)
@@ -91,6 +104,8 @@ public class AnamClient(internal val options: AnamClientOptions) {
             is ApiResult.Success<SessionConfig> -> {
                 val session = result.data
                 logger.i(TAG) { "Session started successfully: $session" }
+                metricsClient.updateContext(MetricsContext(sessionId = session.sessionId))
+
                 val signallingClient = SignallingClientImpl(
                     config = result.data,
                     apiGateway = sessionOptions.apiGateway,
@@ -116,6 +131,7 @@ public class AnamClient(internal val options: AnamClientOptions) {
                         mediaStreamManager = mediaStreamManager,
                         messagingClient = MessagingClientImpl(streamingClient, logger),
                         sessionManager = createPlatformSessionManager(options.context, logger),
+                        metricsClient = metricsClient,
                         logger = logger,
                     ),
                 )
@@ -124,11 +140,26 @@ public class AnamClient(internal val options: AnamClientOptions) {
             // Unfortunately, the API failed to create the require Session.
             is ApiResult.Error -> {
                 logger.e(TAG) { "Failed to start session: $result" }
+                metricsClient.send(ClientMetric.Error, tags = mapOf(ClientTags.ERROR to result.message))
                 SessionResult.Error(
                     message = result.message,
                     cause = result.cause,
                 )
             }
+        }
+    }
+
+    private fun buildMetricsClient(sessionOptions: SessionOptions): MetricsClient {
+        logger.i(TAG) { "Metrics ${if (sessionOptions.isMetricsDisabled) "disabled" else "enabled"}" }
+        return if (sessionOptions.isMetricsDisabled) {
+            NoOpMetricsClient
+        } else {
+            MetricsClientImpl(
+                baseUrl = options.environment.baseUrl,
+                apiGateway = sessionOptions.apiGateway,
+                httpClient = buildMetricsHttpClient(),
+                logger = logger,
+            )
         }
     }
 
