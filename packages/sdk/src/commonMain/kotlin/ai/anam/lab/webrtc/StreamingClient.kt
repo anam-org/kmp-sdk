@@ -10,6 +10,9 @@ import ai.anam.lab.api.SignalMessageType
 import ai.anam.lab.api.UserDataMessage
 import ai.anam.lab.api.asRaw
 import ai.anam.lab.api.defaultJsonConfiguration
+import ai.anam.lab.metrics.RemoteRtpStatsMessage
+import ai.anam.lab.metrics.statsJson
+import ai.anam.lab.metrics.toRtpStatsReport
 import ai.anam.lab.utils.Logger
 import ai.anam.lab.utils.cancellableRunCatching
 import ai.anam.lab.webrtc.MediaStreamManagerImpl.MediaAccessException
@@ -29,10 +32,10 @@ import io.ktor.utils.io.core.toByteArray
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.resume
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +45,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -76,6 +80,7 @@ internal interface StreamingClient {
 internal class StreamingClientImpl(
     private val config: SessionConfig,
     private val isLocalAudioEnabled: Boolean,
+    private val isStatsCollectionEnabled: Boolean = true,
     private val mediaStreamManager: MediaStreamManager,
     private val signallingClient: SignallingClient,
     private val logger: Logger,
@@ -103,6 +108,9 @@ internal class StreamingClientImpl(
 
     // Flag to record whether or not we've received an Answer via our Signalling Client.
     private val connectionReceivedAnswer = AtomicBoolean(false)
+
+    // Ensures periodic stats collection is only started once per connection.
+    private val statsCollectionStarted = AtomicBoolean(false)
 
     // Store the set of IceCandidates until we've received a suitable Answer message, at which we can add them to our
     // PeerConnection.
@@ -235,10 +243,16 @@ internal class StreamingClientImpl(
             }
 
             launch {
+                val statsScope = this
                 peerConnection.flatMapLatest { peerConnection ->
                     peerConnection.onIceConnectionStateChange
                 }.collect { state ->
                     onIceConnectionStateChange(state)
+
+                    // Start periodic stats collection once the ICE connection is established.
+                    if (state == IceConnectionState.Connected || state == IceConnectionState.Completed) {
+                        statsScope.launch { startStatsCollection() }
+                    }
                 }
             }
 
@@ -372,10 +386,38 @@ internal class StreamingClientImpl(
         }
     }
 
+    /**
+     * Starts periodically collecting WebRTC stats and sending them via the data channel. Only starts once per
+     * connection (guarded by [statsCollectionStarted]). The coroutine is automatically cancelled when the parent
+     * scope (and therefore the connection) ends.
+     */
+    private suspend fun startStatsCollection() = coroutineScope {
+        if (!isStatsCollectionEnabled) return@coroutineScope
+        if (!statsCollectionStarted.compareAndSet(expectedValue = false, newValue = true)) return@coroutineScope
+
+        logger.d(TAG) { "Starting periodic stats collection (every ${STATS_COLLECTION_INTERVAL_MS}ms)" }
+        while (isActive) {
+            delay(STATS_COLLECTION_INTERVAL_MS)
+            cancellableRunCatching {
+                val report = _peerConnection.value?.getStats() ?: return@cancellableRunCatching
+                val rtpStats = report.toRtpStatsReport()
+                val message = statsJson.encodeToString(
+                    RemoteRtpStatsMessage.serializer(),
+                    RemoteRtpStatsMessage(data = rtpStats),
+                )
+                sendDataMessage(message)
+            }.onFailure { e ->
+                logger.e(TAG, e) { "Failed to collect/send stats: ${e.message}" }
+            }
+        }
+    }
+
     private companion object {
         const val TAG = "StreamingClient"
 
         // Local flag (for now) to allow us to log more debug/verbose information.
         const val DEBUG = true
+
+        const val STATS_COLLECTION_INTERVAL_MS = 5000L
     }
 }

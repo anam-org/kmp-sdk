@@ -117,6 +117,7 @@ public class AnamClient(internal val options: AnamClientOptions) {
                 val streamingClient = StreamingClientImpl(
                     config = result.data,
                     isLocalAudioEnabled = sessionOptions.isLocalAudioEnabled,
+                    isStatsCollectionEnabled = !sessionOptions.isMetricsDisabled,
                     mediaStreamManager = mediaStreamManager,
                     signallingClient = signallingClient,
                     logger = logger,
