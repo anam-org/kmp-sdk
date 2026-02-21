@@ -8,6 +8,8 @@ import ai.anam.lab.webrtc.SignallingClient
 import ai.anam.lab.webrtc.StreamingClient
 import com.shepeliev.webrtckmp.AudioTrack
 import com.shepeliev.webrtckmp.VideoTrack
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Clock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -32,7 +34,22 @@ internal data class SessionTracks(val audioTrack: AudioTrack, val videoTrack: Vi
  * This class represents an active session with the Anam SDK. The call to [start] will begin the session, and its
  * lifetime is linked to the CoroutineScope of the call. When the scope is cancelled, the Session will be cleaned up
  * along with any obtained resources.
+ *
+ * ## Lifecycle
+ *
+ * A [Session] transitions through the following states:
+ * 1. **Created** — constructed via [AnamClient], [isActive] is `false`.
+ * 2. **Active** — after [start] is called, [isActive] becomes `true` and the session connects its signalling,
+ *    streaming, and platform clients. [events] begins emitting [SessionEvent]s.
+ * 3. **Closed** — when a [SessionEvent.ConnectionClosed] event is received or the parent coroutine scope is cancelled,
+ *    all jobs are cancelled, resources are released, and [isActive] returns to `false`.
+ *
+ * Calling [start] more than once on the same [Session] instance is not supported and will result in duplicate
+ * connection attempts.
+ *
+ * [isActive] is thread-safe and may be read from any thread.
  */
+@OptIn(ExperimentalAtomicApi::class)
 public class Session internal constructor(
     public val id: String,
     private val signallingClient: SignallingClient,
@@ -44,11 +61,13 @@ public class Session internal constructor(
     private val isLoggingEnabled: Boolean = true,
     private val clock: Clock = Clock.System,
 ) {
+    private val _isActive = AtomicBoolean(false)
+
     /**
-     * Flag to specify whether or not the session is actively streaming.
+     * Whether the session is actively streaming. This property is thread-safe and may be read from any thread.
      */
-    public var isActive: Boolean = false
-        private set
+    public val isActive: Boolean
+        get() = _isActive.load()
 
     /**
      * Flag to mute or unmute the local audio stream (microphone). This can be set before the session has started.
@@ -104,7 +123,7 @@ public class Session internal constructor(
         logger.i(TAG) { "Starting session..." }
         localEvents.emit(SessionEvent.Connecting)
 
-        isActive = true
+        _isActive.store(true)
         try {
             // Since we're starting the Session, let's connect to our various Clients as well as configure any platform
             // specific management.
@@ -145,7 +164,7 @@ public class Session internal constructor(
 
             awaitConnectionClosed()
         } finally {
-            isActive = false
+            _isActive.store(false)
 
             // If we've detected that our connection has been closed, we need to manually cancel all of our jobs. This
             // will prevent us from keeping one connection open while the other(s) have failed. In the event of our
