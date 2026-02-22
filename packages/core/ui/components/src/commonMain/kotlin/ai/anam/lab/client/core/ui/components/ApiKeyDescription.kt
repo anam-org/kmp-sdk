@@ -13,6 +13,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import org.jetbrains.compose.resources.stringResource
@@ -25,6 +26,7 @@ fun ApiKeyDescription(
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
     textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     linkColor: Color = MaterialTheme.colorScheme.primary,
+    textAlign: TextAlign? = null,
 ) {
     val linkText = stringResource(Res.string.api_key_description_link)
     val fullText = stringResource(Res.string.api_key_description, linkText)
@@ -56,6 +58,7 @@ fun ApiKeyDescription(
         text = annotatedString,
         style = textStyle,
         color = textColor,
+        textAlign = textAlign,
         modifier = modifier,
     )
 }

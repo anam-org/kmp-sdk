@@ -61,6 +61,7 @@ class SessionViewModel(
                         copy(
                             imageUrl = avatar.imageUrl,
                             videoUrl = avatar.videoUrl,
+                            isControlEnabled = true,
                         )
                     }
                 }.onLeft { error ->
@@ -69,6 +70,7 @@ class SessionViewModel(
                         copy(
                             imageUrl = null,
                             videoUrl = null,
+                            isControlEnabled = false,
                         )
                     }
                 }
@@ -143,6 +145,7 @@ data class SessionViewState(
     val imageUrl: String? = null,
     val videoUrl: String? = null,
     val isAudioMute: Boolean = false,
+    val isControlEnabled: Boolean = false,
 ) : ViewState
 
 sealed interface SessionState {

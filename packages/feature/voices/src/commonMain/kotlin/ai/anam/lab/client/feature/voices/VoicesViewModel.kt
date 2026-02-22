@@ -1,8 +1,10 @@
 package ai.anam.lab.client.feature.voices
 
+import ai.anam.lab.client.core.common.NotAuthorizedException
 import ai.anam.lab.client.core.common.onLeft
 import ai.anam.lab.client.core.common.onRight
 import ai.anam.lab.client.core.data.models.Voice
+import ai.anam.lab.client.core.data.models.VoiceErrorReason
 import ai.anam.lab.client.core.data.models.isLastPage
 import ai.anam.lab.client.core.datetime.toFormattedDateString
 import ai.anam.lab.client.core.logging.Logger
@@ -63,7 +65,11 @@ class VoicesViewModel(
                 query = null,
             ).onLeft { error ->
                 logger.e(TAG) { "Error loading voices: $error" }
-                paginationState.setError(Exception(error.toString()))
+                val exception = when (error) {
+                    is VoiceErrorReason.NotAuthorized -> NotAuthorizedException()
+                    else -> Exception(error.toString())
+                }
+                paginationState.setError(exception)
             }.onRight { page ->
                 logger.i(TAG) { "Loaded new page (${page.data.size} items)" }
                 paginationState.appendPage(

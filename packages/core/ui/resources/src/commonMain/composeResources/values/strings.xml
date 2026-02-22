@@ -51,4 +51,10 @@
 
     <!-- Errors -->
     <string name="error_sdk_error">An error occurred in the SDK. Please try again.</string>
+
+    <!-- Pagination Errors -->
+    <string name="error_not_authorized_title">API Key Required</string>
+    <string name="error_not_authorized_description">Add an API key in Settings to get started.</string>
+    <string name="error_generic_title">Something went wrong</string>
+    <string name="error_retry_button">Retry</string>
 </resources>
