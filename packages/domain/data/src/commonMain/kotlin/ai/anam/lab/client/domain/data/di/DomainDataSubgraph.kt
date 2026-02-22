@@ -7,6 +7,7 @@ import ai.anam.lab.client.core.data.LlmRepository
 import ai.anam.lab.client.core.data.PersonaRepository
 import ai.anam.lab.client.core.data.VoiceRepository
 import ai.anam.lab.client.core.data.models.Avatar
+import ai.anam.lab.client.core.http.InvalidateAuthTokensInteractor
 import ai.anam.lab.client.core.licenses.LicenseStore
 import ai.anam.lab.client.domain.data.FetchAvatarInteractor
 import ai.anam.lab.client.domain.data.FetchAvatarsInteractor
@@ -15,7 +16,9 @@ import ai.anam.lab.client.domain.data.FetchLlmInteractor
 import ai.anam.lab.client.domain.data.FetchLlmsInteractor
 import ai.anam.lab.client.domain.data.FetchVoiceInteractor
 import ai.anam.lab.client.domain.data.FetchVoicesInteractor
+import ai.anam.lab.client.domain.data.GetApiKeyInteractor
 import ai.anam.lab.client.domain.data.IsApiKeyConfiguredInteractor
+import ai.anam.lab.client.domain.data.ObserveApiKeyChangedInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarIdInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentLlmIdInteractor
@@ -26,11 +29,15 @@ import ai.anam.lab.client.domain.data.SetPersonaLlmInteractor
 import ai.anam.lab.client.domain.data.SetPersonaNameInteractor
 import ai.anam.lab.client.domain.data.SetPersonaSystemPromptInteractor
 import ai.anam.lab.client.domain.data.SetPersonaVoiceInteractor
+import ai.anam.lab.client.domain.data.UpdateApiKeyInteractor
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 @ContributesTo(AppScope::class)
 interface DomainDataSubgraph {
@@ -39,14 +46,20 @@ interface DomainDataSubgraph {
     fun providesObserveCurrentPersonaInteractor(repo: PersonaRepository): ObserveCurrentPersonaInteractor =
         ObserveCurrentPersonaInteractor { repo.current }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Provides
     fun providesObserveCurrentAvatarInteractor(
         observeCurrentPersonaInteractor: ObserveCurrentPersonaInteractor,
         fetchAvatarInteractor: FetchAvatarInteractor,
+        authRepository: AuthRepository,
     ): ObserveCurrentAvatarInteractor = ObserveCurrentAvatarInteractor {
-        observeCurrentPersonaInteractor().map { persona -> persona.avatarId }
-            .distinctUntilChanged()
-            .map { id -> fetchAvatarInteractor(id) }
+        authRepository.apiKeyChanged.onStart { emit(Unit) }
+            .flatMapLatest {
+                observeCurrentPersonaInteractor()
+                    .map { persona -> persona.avatarId }
+                    .distinctUntilChanged()
+                    .map { id -> fetchAvatarInteractor(id) }
+            }
     }
 
     @Provides
@@ -158,6 +171,28 @@ interface DomainDataSubgraph {
     fun providesIsApiKeyConfiguredInteractor(authRepository: AuthRepository): IsApiKeyConfiguredInteractor =
         IsApiKeyConfiguredInteractor {
             val apiToken = authRepository.getApiToken()
-            apiToken != null && apiToken.isNotEmpty()
+            !apiToken.isNullOrEmpty()
         }
+
+    @Provides
+    fun providesGetApiKeyInteractor(authRepository: AuthRepository): GetApiKeyInteractor =
+        GetApiKeyInteractor { authRepository.getApiToken() }
+
+    @Provides
+    fun providesUpdateApiKeyInteractor(
+        authRepository: AuthRepository,
+        personaRepository: PersonaRepository,
+        invalidateAuthTokensInteractor: InvalidateAuthTokensInteractor,
+    ): UpdateApiKeyInteractor = UpdateApiKeyInteractor { key ->
+        val changed = authRepository.setApiKey(key)
+        if (changed) {
+            invalidateAuthTokensInteractor()
+            personaRepository.reset()
+        }
+        changed
+    }
+
+    @Provides
+    fun providesObserveApiKeyChangedInteractor(authRepository: AuthRepository): ObserveApiKeyChangedInteractor =
+        ObserveApiKeyChangedInteractor { authRepository.apiKeyChanged }
 }

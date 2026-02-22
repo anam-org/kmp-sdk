@@ -1,7 +1,9 @@
 package ai.anam.lab.client.core.http.di
 
 import ai.anam.lab.client.core.auth.AuthRepository
+import ai.anam.lab.client.core.http.InvalidateAuthTokensInteractor
 import ai.anam.lab.client.core.http.buildApiHttpClient
+import ai.anam.lab.client.core.http.invalidateAuthTokens
 import ai.anam.lab.client.core.logging.Logger
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
@@ -23,4 +25,8 @@ interface HttpSubgraph {
         .httpClient(httpClient)
         .baseUrl("https://api.anam.ai/")
         .build()
+
+    @Provides
+    fun providesInvalidateAuthTokensInteractor(httpClient: HttpClient): InvalidateAuthTokensInteractor =
+        InvalidateAuthTokensInteractor { httpClient.invalidateAuthTokens() }
 }

@@ -11,6 +11,17 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(project(":packages:core:settings"))
+            }
+        }
+
+        commonTest {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.turbine)
+                implementation(project(":packages:core:test-fixtures"))
             }
         }
     }

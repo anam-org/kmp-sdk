@@ -65,6 +65,12 @@ class SessionViewModel(
                     }
                 }.onLeft { error ->
                     logger.e(TAG) { "Failed to fetch avatar: $error" }
+                    setState {
+                        copy(
+                            imageUrl = null,
+                            videoUrl = null,
+                        )
+                    }
                 }
             }
         }

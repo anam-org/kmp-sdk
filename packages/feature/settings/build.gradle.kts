@@ -25,11 +25,16 @@ kotlin {
                 implementation(project(":packages:core:settings"))
                 implementation(project(":packages:core:ui:components"))
                 implementation(project(":packages:core:ui:resources"))
+
+                implementation(project(":packages:domain:data"))
             }
         }
 
         commonTest {
             dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(project(":packages:core:test-fixtures"))
             }
         }
     }

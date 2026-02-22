@@ -12,6 +12,7 @@ kotlin {
             dependencies {
                 api(project(":packages:core:data"))
                 api(project(":packages:core:auth"))
+                implementation(project(":packages:core:http"))
                 implementation(project(":packages:core:licenses"))
             }
         }

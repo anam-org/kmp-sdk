@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
  */
 interface AnamPreferences {
     val theme: Preference<Theme>
+    val apiKey: Preference<String>
 }
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -41,6 +42,10 @@ class AnamPreferencesImpl(
         MappingPreference(KEY_THEME, Theme.SYSTEM, ::getThemeForStorageValue, ::themeToStorageValue)
     }
 
+    override val apiKey: Preference<String> by lazy {
+        MappingPreference(KEY_API_KEY, "", { it }, { it })
+    }
+
     private inner class MappingPreference<V>(
         private val key: String,
         override val defaultValue: V,
@@ -54,6 +59,8 @@ class AnamPreferencesImpl(
         override suspend fun get(): V = withContext(ioDispatcher) {
             settings.getStringOrNull(key)?.let(toValue) ?: defaultValue
         }
+
+        override fun getBlocking(): V = settings.getStringOrNull(key)?.let(toValue) ?: defaultValue
 
         override val flow: Flow<V> by lazy {
             flowSettings.getStringOrNullFlow(key)
@@ -78,6 +85,7 @@ class AnamPreferencesImpl(
     }
 
     internal companion object {
+        const val KEY_API_KEY = "pref_api_key"
         const val KEY_THEME = "pref_theme"
         const val THEME_LIGHT_VALUE = "light"
         const val THEME_DARK_VALUE = "dark"

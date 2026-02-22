@@ -15,6 +15,14 @@ interface Preference<T> {
 
     suspend fun set(value: T)
     suspend fun get(): T
+
+    /**
+     * Returns the current value without suspending. Reads directly from the backing store, which
+     * is synchronous on all platforms. Prefer the suspend [get] for general use; this exists for
+     * the narrow case where a value must be available before any coroutine can run (e.g. during
+     * app initialisation).
+     */
+    fun getBlocking(): T
 }
 
 /**
