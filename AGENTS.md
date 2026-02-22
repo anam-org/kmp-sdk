@@ -53,6 +53,10 @@ The repository follows a monorepo-like structure:
 -   **DI Scopes**: `AppScope` for app-level singletons; `ViewModelScope` for ViewModel-scoped bindings.
 -   **Dependency Injection**: Uses `dev.zacsweers.metro` (Metro), which provides a Dagger-like experience for Kotlin Multiplatform.
 
+### Testing
+-   **Test class structure**: In unit test classes, place `@Test` methods first, then private helper functions (e.g., factory methods like `createViewModel()`), then fake/test-double classes at the end.
+-   **Test Fixtures**: Fake implementations of core interfaces (e.g., `FakeLogger`, `FakeNavigator`, `FakeAnamPreferences`) live in the `packages/core/test-fixtures` module under the `ai.anam.lab.client.core.test` package. Consumer modules depend on this via `commonTest` dependencies. Do not duplicate fakes in individual module test source sets.
+
 ### Naming Conventions
 -   **Packages**: `ai.anam.client.<layer>.<module>` (e.g., `ai.anam.client.feature.voices`).
 

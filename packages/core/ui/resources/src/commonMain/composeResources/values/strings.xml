@@ -14,10 +14,27 @@
     <string name="session_hangup_content_description">Hangup</string>
     <string name="session_call_content_description">Call</string>
 
+    <!-- API Key -->
+    <string name="api_key_description">To get started, enter your API key.\nGenerate one for free at %1$s</string>
+    <string name="api_key_description_link">lab.anam.ai</string>
+
+    <!-- Welcome -->
+    <string name="welcome_tagline">The Face of AI</string>
+    <string name="welcome_api_key_settings_hint">You can change this later in Settings.</string>
+    <string name="welcome_api_key_hint">Enter your API key</string>
+    <string name="welcome_save_button">Get Started</string>
+    <string name="welcome_dismiss_content_description">Dismiss</string>
+
     <!-- Settings -->
     <string name="settings_content_description">Settings</string>
+    <string name="settings_header_api">Configuration</string>
     <string name="settings_header_ui">User Interface</string>
     <string name="settings_theme_title">Theme</string>
+    <string name="settings_api_key_title">API Key</string>
+    <string name="settings_api_key_summary_empty">No API key configured</string>
+    <string name="settings_api_key_dialog_hint">Enter your API key</string>
+    <string name="settings_api_key_dialog_save">Save</string>
+    <string name="settings_api_key_dialog_cancel">Cancel</string>
     <string name="settings_licenses_title">Open source licenses</string>
     <string name="settings_licenses_summary">Anam open source</string>
 
@@ -33,6 +50,5 @@
     <string name="notification_ok_button">OK</string>
 
     <!-- Errors -->
-    <string name="error_missing_api_key">This app was built without an API key. Please read the build instructions.</string>
     <string name="error_sdk_error">An error occurred in the SDK. Please try again.</string>
 </resources>

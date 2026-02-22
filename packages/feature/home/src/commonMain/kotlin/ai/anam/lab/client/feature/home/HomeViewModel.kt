@@ -3,8 +3,6 @@ package ai.anam.lab.client.feature.home
 import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.navigation.FeatureRoute
 import ai.anam.lab.client.core.navigation.Navigator
-import ai.anam.lab.client.core.notifications.ErrorCode
-import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
 import ai.anam.lab.client.core.ui.resources.generated.resources.tab_avatars
 import ai.anam.lab.client.core.ui.resources.generated.resources.tab_llms
@@ -13,9 +11,11 @@ import ai.anam.lab.client.core.ui.resources.generated.resources.tab_voices
 import ai.anam.lab.client.core.viewmodel.BaseViewModel
 import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.data.IsApiKeyConfiguredInteractor
-import ai.anam.lab.client.domain.notifications.SendNotificationInteractor
+import ai.anam.lab.client.domain.data.ObserveApiKeyChangedInteractor
+import ai.anam.lab.client.domain.data.UpdateApiKeyInteractor
 import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 
@@ -24,17 +24,46 @@ class HomeViewModel(
     private val logger: Logger,
     private val navigator: Navigator,
     private val isApiKeyConfiguredInteractor: IsApiKeyConfiguredInteractor,
-    private val sendNotificationInteractor: SendNotificationInteractor,
+    private val updateApiKeyInteractor: UpdateApiKeyInteractor,
+    private val observeApiKeyChangedInteractor: ObserveApiKeyChangedInteractor,
 ) : BaseViewModel<HomeViewState>(HomeViewState()) {
 
+    private var checkApiKeyJob: Job? = null
+
     init {
+        checkApiKey()
+
         viewModelScope.launch {
+            observeApiKeyChangedInteractor().collect {
+                checkApiKey()
+            }
+        }
+    }
+
+    private fun checkApiKey() {
+        checkApiKeyJob?.cancel()
+        checkApiKeyJob = viewModelScope.launch {
             val isConfigured = isApiKeyConfiguredInteractor()
-            if (!isConfigured) {
-                logger.e(TAG) { "API key not configured" }
-                sendNotificationInteractor(
-                    Notification.Error(errorCode = ErrorCode.MISSING_API_KEY),
-                )
+            if (!isConfigured && !state.value.welcomeOverlayDismissed) {
+                logger.i(TAG) { "API key not configured, showing welcome overlay" }
+                setState { copy(showWelcomeOverlay = true) }
+            } else {
+                setState { copy(showWelcomeOverlay = false) }
+            }
+        }
+    }
+
+    fun dismissWelcomeOverlay() {
+        logger.i(TAG) { "Dismissing welcome overlay" }
+        setState { copy(showWelcomeOverlay = false, welcomeOverlayDismissed = true) }
+    }
+
+    fun saveApiKey(key: String) {
+        viewModelScope.launch {
+            val changed = updateApiKeyInteractor(key)
+            if (changed) {
+                logger.i(TAG) { "API key updated" }
+                setState { copy(showWelcomeOverlay = false, welcomeOverlayDismissed = true) }
             }
         }
     }
@@ -62,6 +91,8 @@ data class HomeViewState(
         Tab.Voices,
         Tab.Messages,
     ),
+    val showWelcomeOverlay: Boolean = false,
+    val welcomeOverlayDismissed: Boolean = false,
 ) : ViewState
 
 sealed class Tab(val name: StringResource) {

@@ -3,7 +3,6 @@ package ai.anam.lab.client.feature.notifications
 import ai.anam.lab.client.core.notifications.ErrorCode
 import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
-import ai.anam.lab.client.core.ui.resources.generated.resources.error_missing_api_key
 import ai.anam.lab.client.core.ui.resources.generated.resources.error_sdk_error
 import ai.anam.lab.client.core.ui.resources.generated.resources.notification_error_title
 import ai.anam.lab.client.core.ui.resources.generated.resources.notification_info_title
@@ -25,13 +24,10 @@ fun NotificationsView(viewModel: NotificationsViewModel = metroViewModel()) {
     val viewState by viewModel.state.collectAsState()
     val currentNotification = viewState.currentNotification
 
-    // Show dialog when a notification is present
     if (currentNotification != null) {
         NotificationDialog(
             notification = currentNotification,
-            onDismiss = {
-                viewModel.dismissNotification()
-            },
+            onDismiss = { viewModel.dismissNotification() },
         )
     }
 }
@@ -70,7 +66,6 @@ private fun getNotificationMessage(notification: Notification): String {
     return when (notification) {
         is Notification.Error -> {
             when (notification.errorCode) {
-                ErrorCode.MISSING_API_KEY -> stringResource(Res.string.error_missing_api_key)
                 ErrorCode.SDK_ERROR -> notification.customMessage ?: stringResource(Res.string.error_sdk_error)
             }
         }
