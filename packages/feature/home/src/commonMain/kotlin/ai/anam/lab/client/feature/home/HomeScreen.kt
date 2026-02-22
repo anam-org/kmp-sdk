@@ -53,6 +53,8 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = metroVi
         viewState = viewState,
         onTabSelect = viewModel::selectTab,
         onSettingsClick = viewModel::selectSettings,
+        onDismissWelcome = viewModel::dismissWelcomeOverlay,
+        onSaveApiKey = viewModel::saveApiKey,
         modifier = modifier,
     )
 }
@@ -63,44 +65,53 @@ fun HomeScreen(
     viewState: HomeViewState,
     onTabSelect: (Int) -> Unit,
     onSettingsClick: () -> Unit,
+    onDismissWelcome: () -> Unit,
+    onSaveApiKey: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.sharedBoundsIfAvailable(key = SharedTransitionKeys.TOP_BAR),
-                title = {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = stringResource(Res.string.app_name),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.align(Alignment.Center),
-                        )
-
-                        IconButton(
-                            onClick = onSettingsClick,
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Settings,
-                                contentDescription = stringResource(Res.string.settings_content_description),
+    Box(modifier = modifier) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
+            topBar = {
+                TopAppBar(
+                    modifier = Modifier.sharedBoundsIfAvailable(key = SharedTransitionKeys.TOP_BAR),
+                    title = {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = stringResource(Res.string.app_name),
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.align(Alignment.Center),
                             )
+
+                            IconButton(
+                                onClick = onSettingsClick,
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Settings,
+                                    contentDescription = stringResource(Res.string.settings_content_description),
+                                )
+                            }
                         }
-                    }
-                },
+                    },
+                )
+            },
+        ) { innerPadding ->
+            HomeView(
+                viewState = viewState,
+                onTabSelect = onTabSelect,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(innerPadding)
+                    .fillMaxSize(),
             )
-        },
-    ) { innerPadding ->
-        HomeView(
-            viewState = viewState,
-            onTabSelect = onTabSelect,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .padding(innerPadding)
-                .fillMaxSize(),
+        }
+
+        WelcomeOverlay(
+            visible = viewState.showWelcomeOverlay,
+            onDismiss = onDismissWelcome,
+            onSave = onSaveApiKey,
         )
     }
 }

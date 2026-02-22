@@ -9,6 +9,7 @@ import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.viewmodel.BaseViewModel
 import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.data.FetchVoicesInteractor
+import ai.anam.lab.client.domain.data.ObserveApiKeyChangedInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentVoiceIdInteractor
 import ai.anam.lab.client.domain.data.SetPersonaVoiceInteractor
 import androidx.lifecycle.viewModelScope
@@ -21,21 +22,27 @@ class VoicesViewModel(
     private val fetchVoicesInteractor: FetchVoicesInteractor,
     private val observeCurrentVoiceIdInteractor: ObserveCurrentVoiceIdInteractor,
     private val setPersonaVoiceInteractor: SetPersonaVoiceInteractor,
+    private val observeApiKeyChangedInteractor: ObserveApiKeyChangedInteractor,
     private val logger: Logger,
 ) : BaseViewModel<VoicesViewState>(
     VoicesViewState(items = PaginationState(initialPageKey = 1, onRequestPage = {})),
 ) {
 
-    val paginationState = PaginationState<Int, Voice>(
-        initialPageKey = 1,
-        onRequestPage = { loadPage(it) },
-    )
+    private var paginationState = createPaginationState()
 
     init {
         setState { copy(items = paginationState) }
+
         viewModelScope.launch {
             observeCurrentVoiceIdInteractor().collect { id ->
                 setState { copy(selectedId = id) }
+            }
+        }
+
+        viewModelScope.launch {
+            observeApiKeyChangedInteractor().collect {
+                logger.i(TAG) { "API key changed, resetting pagination" }
+                resetPagination()
             }
         }
     }
@@ -66,6 +73,16 @@ class VoicesViewModel(
                 )
             }
         }
+    }
+
+    private fun createPaginationState() = PaginationState<Int, Voice>(
+        initialPageKey = 1,
+        onRequestPage = { loadPage(it) },
+    )
+
+    private fun resetPagination() {
+        paginationState = createPaginationState()
+        setState { copy(items = paginationState) }
     }
 
     private companion object {

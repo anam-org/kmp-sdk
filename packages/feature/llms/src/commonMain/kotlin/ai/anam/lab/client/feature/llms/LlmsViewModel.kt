@@ -9,6 +9,7 @@ import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.viewmodel.BaseViewModel
 import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.data.FetchLlmsInteractor
+import ai.anam.lab.client.domain.data.ObserveApiKeyChangedInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentLlmIdInteractor
 import ai.anam.lab.client.domain.data.SetPersonaLlmInteractor
 import androidx.lifecycle.viewModelScope
@@ -21,21 +22,27 @@ class LlmsViewModel(
     private val fetchLlmsInteractor: FetchLlmsInteractor,
     private val observeCurrentLlmIdInteractor: ObserveCurrentLlmIdInteractor,
     private val setPersonaLlmInteractor: SetPersonaLlmInteractor,
+    private val observeApiKeyChangedInteractor: ObserveApiKeyChangedInteractor,
     private val logger: Logger,
 ) : BaseViewModel<LlmsViewState>(
     LlmsViewState(items = PaginationState(initialPageKey = 1, onRequestPage = {})),
 ) {
 
-    val paginationState = PaginationState<Int, Llm>(
-        initialPageKey = 1,
-        onRequestPage = { loadPage(it) },
-    )
+    private var paginationState = createPaginationState()
 
     init {
         setState { copy(items = paginationState) }
+
         viewModelScope.launch {
             observeCurrentLlmIdInteractor().collect { id ->
                 setState { copy(selectedId = id) }
+            }
+        }
+
+        viewModelScope.launch {
+            observeApiKeyChangedInteractor().collect {
+                logger.i(TAG) { "API key changed, resetting pagination" }
+                resetPagination()
             }
         }
     }
@@ -67,6 +74,16 @@ class LlmsViewModel(
                 )
             }
         }
+    }
+
+    private fun createPaginationState() = PaginationState<Int, Llm>(
+        initialPageKey = 1,
+        onRequestPage = { loadPage(it) },
+    )
+
+    private fun resetPagination() {
+        paginationState = createPaginationState()
+        setState { copy(items = paginationState) }
     }
 
     private companion object {

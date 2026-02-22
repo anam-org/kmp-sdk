@@ -30,6 +30,11 @@ class PersonaRepository(private val logger: Logger) {
     fun withSystemPrompt(prompt: String) = with { copy(systemPrompt = prompt) }
     fun withMaxSessionLengthSeconds(seconds: Int) = with { copy(maxSessionLengthSeconds = seconds) }
 
+    fun reset() {
+        _current.value = DEFAULT_PERSONA
+        logger.i(TAG) { "Persona reset to defaults" }
+    }
+
     private fun with(block: Persona.() -> Persona) {
         _current.value = _current.value.block().also {
             logger.i(TAG) { "Updated Persona: $it" }
@@ -40,13 +45,13 @@ class PersonaRepository(private val logger: Logger) {
         const val TAG = "PersonaRepository"
 
         val DEFAULT_PERSONA = Persona(
-            name = "Cara",
-            avatarId = "30fa96d0-26c4-4e55-94a0-517025942e18",
-            voiceId = "6bfbe25a-979d-40f3-a92b-5394170af54b",
-            llmId = "0934d97d-0c3a-4f33-91b0-5e136a0ef466",
+            name = "Liv",
+            avatarId = "071b0286-4cce-4808-bee2-e642f1062de3",
+            voiceId = "de23e340-1416-4dd8-977d-065a7ca11697",
+            llmId = "85906141-db1c-4927-b74d-3c82ebe2436e",
             systemPrompt =
-            "You are Cara, a helpful customer service representative. Be friendly and " +
-                "concise in your responses.",
+            "You are a helpful, concise, and reliable assistant. You are approachable, professional, and focused on " +
+                "providing accurate information in a friendly manner.",
             maxSessionLengthSeconds = 600,
         )
     }

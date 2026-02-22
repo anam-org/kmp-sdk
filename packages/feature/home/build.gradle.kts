@@ -22,6 +22,7 @@ kotlin {
                 implementation(project(":packages:core:di"))
                 implementation(project(":packages:core:navigation"))
                 implementation(project(":packages:core:viewmodel"))
+                implementation(project(":packages:core:ui:components"))
                 implementation(project(":packages:core:ui:video"))
                 implementation(project(":packages:core:ui:resources"))
 
@@ -42,6 +43,9 @@ kotlin {
 
         commonTest {
             dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(project(":packages:core:test-fixtures"))
             }
         }
     }

@@ -3,6 +3,8 @@ package ai.anam.lab.client.core.http
 import ai.anam.lab.client.core.logging.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.authProvider
+import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -43,6 +45,10 @@ fun buildApiHttpClient(token: () -> String?, logger: Logger) = HttpClient {
 
     // Configure ktor to throw a ResponseException if we don't get a successful status code.
     expectSuccess = true
+}
+
+fun HttpClient.invalidateAuthTokens() {
+    authProvider<BearerAuthProvider>()?.clearToken()
 }
 
 private const val TAG = "HttpClient"
