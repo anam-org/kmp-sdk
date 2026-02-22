@@ -13,6 +13,8 @@ val AnamLightColors = lightColorScheme(
     surfaceContainer = Color.White,
 )
 
+fun Color.asDisabled(): Color = copy(alpha = 0.38f)
+
 val AnamDarkColors = darkColorScheme(
     primary = Color.White,
     onPrimary = Color.Black,

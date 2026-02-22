@@ -1,6 +1,7 @@
 package ai.anam.lab.client.feature.voices
 
 import ai.anam.lab.client.core.data.models.Voice
+import ai.anam.lab.client.core.ui.components.PaginationErrorIndicator
 import ai.anam.lab.client.core.ui.components.PlayPauseButton
 import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.viewmodel.metroViewModel
@@ -41,6 +42,12 @@ fun VoicesView(viewState: VoicesViewState, onVoiceSelect: (String) -> Unit, modi
     PaginatedLazyColumn(
         paginationState = viewState.items,
         modifier = modifier.fillMaxWidth(),
+        firstPageErrorIndicator = { exception ->
+            PaginationErrorIndicator(
+                exception = exception,
+                onRetry = { viewState.items.retryLastFailedRequest() },
+            )
+        },
     ) {
         itemsIndexed(
             viewState.items.allItems!!,

@@ -27,6 +27,7 @@ kotlin {
                 implementation(project(":packages:core:ui:components"))
                 implementation(project(":packages:core:ui:video"))
                 implementation(project(":packages:core:ui:resources"))
+                implementation(project(":packages:core:ui:theme"))
 
                 implementation(project(":packages:domain:data"))
                 implementation(project(":packages:domain:notifications"))
