@@ -5,6 +5,8 @@ import ai.anam.lab.client.core.permissions.BindEffect
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
 import ai.anam.lab.client.core.ui.resources.generated.resources.session_call_content_description
 import ai.anam.lab.client.core.ui.resources.generated.resources.session_hangup_content_description
+import ai.anam.lab.client.core.ui.resources.generated.resources.welcome_hero
+import ai.anam.lab.client.core.ui.theme.asDisabled
 import ai.anam.lab.client.core.ui.video.AvatarVideo
 import ai.anam.lab.client.core.viewmodel.metroViewModel
 import androidx.compose.animation.AnimatedVisibility
@@ -13,6 +15,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -117,6 +121,7 @@ fun SessionView(
         SessionControls(
             isSessionActive = !isIdle,
             isAudioMute = viewState.isAudioMute,
+            isEnabled = viewState.isControlEnabled,
             onStartSession = onStartSession,
             onStopSession = onStopSession,
             onToggleAudioMute = onToggleAudioMute,
@@ -142,14 +147,24 @@ fun ShutterView(
         exit = fadeOut(),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(blurRadius),
-            )
+            val imageModifier = Modifier
+                .fillMaxSize()
+                .blur(blurRadius)
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = imageModifier,
+                )
+            } else {
+                Image(
+                    painter = painterResource(Res.drawable.welcome_hero),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = imageModifier,
+                )
+            }
 
             if (isSessionLoading) {
                 CircularProgressIndicator(
@@ -165,6 +180,7 @@ fun ShutterView(
 fun SessionControls(
     isSessionActive: Boolean,
     isAudioMute: Boolean,
+    isEnabled: Boolean,
     onStartSession: () -> Unit,
     onStopSession: () -> Unit,
     onToggleAudioMute: () -> Unit,
@@ -190,6 +206,7 @@ fun SessionControls(
 
         SessionControlButton(
             isSessionActive = isSessionActive,
+            isEnabled = isEnabled || isSessionActive,
             onClick = if (isSessionActive) onStopSession else onStartSession,
             modifier = Modifier
                 .size(48.dp)
@@ -201,6 +218,7 @@ fun SessionControls(
 @Composable
 fun SessionControlButton(
     isSessionActive: Boolean,
+    isEnabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     duration: Int = 500,
@@ -218,7 +236,11 @@ fun SessionControlButton(
 
     FilledIconButton(
         onClick = onClick,
-        colors = IconButtonDefaults.filledIconButtonColors(containerColor = backgroundColor),
+        enabled = isEnabled,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = backgroundColor,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurface.asDisabled(),
+        ),
         modifier = modifier,
     ) {
         Icon(

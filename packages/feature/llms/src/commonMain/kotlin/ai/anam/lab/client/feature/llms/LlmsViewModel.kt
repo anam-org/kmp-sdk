@@ -1,8 +1,10 @@
 package ai.anam.lab.client.feature.llms
 
+import ai.anam.lab.client.core.common.NotAuthorizedException
 import ai.anam.lab.client.core.common.onLeft
 import ai.anam.lab.client.core.common.onRight
 import ai.anam.lab.client.core.data.models.Llm
+import ai.anam.lab.client.core.data.models.LlmErrorReason
 import ai.anam.lab.client.core.data.models.isLastPage
 import ai.anam.lab.client.core.datetime.toFormattedDateString
 import ai.anam.lab.client.core.logging.Logger
@@ -64,7 +66,11 @@ class LlmsViewModel(
                 includeDefaults = null,
             ).onLeft { error ->
                 logger.e(TAG) { "Error loading LLMs: $error" }
-                paginationState.setError(Exception(error.toString()))
+                val exception = when (error) {
+                    is LlmErrorReason.NotAuthorized -> NotAuthorizedException()
+                    else -> Exception(error.toString())
+                }
+                paginationState.setError(exception)
             }.onRight { page ->
                 logger.i(TAG) { "Loaded new page (${page.data.size} items)" }
                 paginationState.appendPage(

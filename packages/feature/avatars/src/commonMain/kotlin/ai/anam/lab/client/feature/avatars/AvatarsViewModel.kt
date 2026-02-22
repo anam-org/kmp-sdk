@@ -1,8 +1,10 @@
 package ai.anam.lab.client.feature.avatars
 
+import ai.anam.lab.client.core.common.NotAuthorizedException
 import ai.anam.lab.client.core.common.onLeft
 import ai.anam.lab.client.core.common.onRight
 import ai.anam.lab.client.core.data.models.Avatar
+import ai.anam.lab.client.core.data.models.AvatarErrorReason
 import ai.anam.lab.client.core.data.models.isLastPage
 import ai.anam.lab.client.core.logging.Logger
 import ai.anam.lab.client.core.viewmodel.BaseViewModel
@@ -63,7 +65,11 @@ class AvatarsViewModel(
                 onlyOneShot = null,
             ).onLeft { error ->
                 logger.e(TAG) { "Error loading avatars: $error" }
-                paginationState.setError(Exception(error.toString()))
+                val exception = when (error) {
+                    is AvatarErrorReason.NotAuthorized -> NotAuthorizedException()
+                    else -> Exception(error.toString())
+                }
+                paginationState.setError(exception)
             }.onRight { page ->
                 logger.i(TAG) { "Loaded new page (${page.data.size} items)" }
                 paginationState.appendPage(

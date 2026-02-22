@@ -2,6 +2,7 @@ package ai.anam.lab.client.feature.avatars
 
 import ai.anam.lab.client.core.data.models.Avatar
 import ai.anam.lab.client.core.datetime.toFormattedDateString
+import ai.anam.lab.client.core.ui.components.PaginationErrorIndicator
 import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.viewmodel.metroViewModel
 import androidx.compose.foundation.clickable
@@ -60,6 +61,12 @@ fun AvatarsView(
             columns = GridCells.Fixed(columnCount),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
+            firstPageErrorIndicator = { exception ->
+                PaginationErrorIndicator(
+                    exception = exception,
+                    onRetry = { viewState.items.retryLastFailedRequest() },
+                )
+            },
         ) {
             itemsIndexed(
                 viewState.items.allItems!!,

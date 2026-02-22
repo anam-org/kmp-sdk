@@ -1,6 +1,7 @@
 package ai.anam.lab.client.feature.llms
 
 import ai.anam.lab.client.core.data.models.Llm
+import ai.anam.lab.client.core.ui.components.PaginationErrorIndicator
 import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.viewmodel.metroViewModel
 import androidx.compose.foundation.clickable
@@ -33,6 +34,12 @@ fun LlmsView(viewState: LlmsViewState, onLlmSelect: (String) -> Unit, modifier: 
     PaginatedLazyColumn(
         paginationState = viewState.items,
         modifier = modifier.fillMaxWidth(),
+        firstPageErrorIndicator = { exception ->
+            PaginationErrorIndicator(
+                exception = exception,
+                onRetry = { viewState.items.retryLastFailedRequest() },
+            )
+        },
     ) {
         itemsIndexed(
             viewState.items.allItems!!,
