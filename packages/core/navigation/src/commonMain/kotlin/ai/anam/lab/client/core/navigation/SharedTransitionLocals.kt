@@ -24,16 +24,8 @@ val LocalAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> 
  * allowing elements with the same [key] across different navigation destinations to animate
  * smoothly between each other. Returns the modifier unchanged if scopes are not provided
  * (e.g. in previews or outside NavigationHost).
+ *
+ * On wasmJs, shared element transitions are not supported at runtime, so this is a no-op.
  */
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun Modifier.sharedBoundsIfAvailable(key: String): Modifier {
-    val sharedTransitionScope = LocalSharedTransitionScope.current ?: return this
-    val animatedVisibilityScope = LocalAnimatedVisibilityScope.current ?: return this
-    return with(sharedTransitionScope) {
-        sharedBounds(
-            sharedContentState = rememberSharedContentState(key = key),
-            animatedVisibilityScope = animatedVisibilityScope,
-        )
-    }
-}
+expect fun Modifier.sharedBoundsIfAvailable(key: String): Modifier
