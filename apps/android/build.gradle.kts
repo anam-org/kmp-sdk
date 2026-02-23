@@ -29,10 +29,28 @@ dependencies {
 android {
     namespace = "ai.anam.lab.client"
 
+    val keystorePath = providers.environmentVariable("KEYSTORE_PATH")
+
+    if (keystorePath.isPresent) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(keystorePath.get())
+                storePassword = providers.environmentVariable("KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("KEY_PASSWORD").get()
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "ai.anam.lab.client"
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = providers.environmentVariable("APP_VERSION_CODE")
+            .orElse(providers.gradleProperty("APP_VERSION_CODE"))
+            .getOrElse("1")
+            .toInt()
+        versionName = providers.environmentVariable("APP_VERSION_NAME")
+            .orElse(providers.gradleProperty("APP_VERSION_NAME"))
+            .getOrElse("0.1")
     }
 
     packaging {
@@ -44,6 +62,9 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            if (keystorePath.isPresent) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }

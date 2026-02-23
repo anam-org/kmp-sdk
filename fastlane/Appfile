@@ -1,0 +1,5 @@
+app_identifier("ai.anam.lab.client")
+
+for_platform :android do
+  package_name("ai.anam.lab.client")
+end
