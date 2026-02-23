@@ -4,7 +4,6 @@
 package ai.anam.lab.client.gradle
 
 import app.cash.licensee.LicenseeExtension
-import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.register
@@ -31,72 +30,103 @@ fun Project.configureLicensee() {
         }
     }
 
-    // Check if this project should export license reports
-    // Only the 'shared' package (packages/app) needs to export reports to resources
+    // Only the shared package (packages/app) needs to export license reports to resources
     if (path == ":packages:app") {
         configureLicenseeReportExport()
     }
 }
 
 private fun Project.configureLicenseeReportExport() {
-    // Android Variants
-    pluginManager.withPlugin("com.android.library") {
-        extensions.configure<LibraryAndroidComponentsExtension> {
-            onVariants { variant ->
-                val variantName = variant.name
-                val capitalizedVariantName = variantName.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase() else it.toString()
-                }
-                val licenseeTaskName = "licenseeAndroid$capitalizedVariantName"
-                val copyTaskName = "copyLicenseeReportAndroid$capitalizedVariantName"
+    val appProjectPath = this.path
+    val resourceProject = project(":packages:core:ui:resources")
 
-                registerCopyLicenseeReportTask(
-                    taskName = copyTaskName,
-                    licenseeTaskName = licenseeTaskName,
-                    reportPath = "reports/licensee/android$capitalizedVariantName/artifacts.json",
-                    sourceName = "android$capitalizedVariantName",
-                )
-
-                // Use configure() or wrap in logic to wait for task creation if needed,
-                // but onVariants runs early. "assembleDebug" should be created by AGP.
-                // However, sometimes finding it by name fails if it's not yet registered.
-                // We can try using the task provider if we can access it, or use afterEvaluate (discouraged but works),
-                // or better: configure the task graph.
-                //
-                // AGP 7/8+ separates variant API from task creation. Tasks might be created later.
-                // We can try to use `tasks.configureEach` or similar lazy lookup.
-                tasks.configureEach {
-                    if (name == "assemble$capitalizedVariantName") {
-                        finalizedBy(copyTaskName)
-                    }
-                }
-            }
-        }
-    }
-
-    // iOS Targets
     pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
         extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension> {
+            // iOS targets — each uses its own licensee report
             targets.withType<KotlinNativeTarget> {
                 if (konanTarget.family.isAppleFamily) {
                     val targetName = this.name
                     val capitalizedTargetName = targetName.replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase() else it.toString()
                     }
-                    val licenseeTaskName = "licensee$capitalizedTargetName"
-                    val copyTaskName = "copyLicenseeReport$capitalizedTargetName"
 
                     registerCopyLicenseeReportTask(
-                        taskName = copyTaskName,
-                        licenseeTaskName = licenseeTaskName,
+                        taskName = "copyLicenseeReport$capitalizedTargetName",
+                        licenseeTaskName = "licensee$capitalizedTargetName",
                         reportPath = "reports/licensee/$targetName/artifacts.json",
                         sourceName = targetName,
                     )
 
-                    compilations.getByName("main").compileTaskProvider.configure {
-                        finalizedBy(copyTaskName)
-                    }
+                    wireComposeResourceDependency(
+                        resourceProject = resourceProject,
+                        appProjectPath = appProjectPath,
+                        copyTaskName = "copyLicenseeReport$capitalizedTargetName",
+                        platformResourceTaskSuffix = "${capitalizedTargetName}Main",
+                    )
                 }
+            }
+        }
+
+        // WasmJS — use its own licensee report
+        registerCopyLicenseeReportTask(
+            taskName = "copyLicenseeReportWasmJs",
+            licenseeTaskName = "licenseeWasmJs",
+            reportPath = "reports/licensee/wasmJs/artifacts.json",
+            sourceName = "wasmJs",
+        )
+
+        wireComposeResourceDependency(
+            resourceProject = resourceProject,
+            appProjectPath = appProjectPath,
+            copyTaskName = "copyLicenseeReportWasmJs",
+            platformResourceTaskSuffix = "WasmJsMain",
+        )
+
+        // Android — the KMP Android plugin (com.android.kotlin.multiplatform.library) in
+        // :packages:app does not produce a licensee report, but :apps:android applies
+        // com.android.application which does. Use that project's release report since
+        // the release variant is what gets distributed to users.
+        val androidAppProject = project(":apps:android")
+        registerCopyLicenseeReportTask(
+            taskName = "copyLicenseeReportAndroid",
+            licenseeTaskName = "${androidAppProject.path}:licenseeAndroidRelease",
+            reportPath = "reports/licensee/androidRelease/artifacts.json",
+            sourceName = "androidRelease",
+            sourceProject = androidAppProject,
+        )
+
+        wireComposeResourceDependency(
+            resourceProject = resourceProject,
+            appProjectPath = appProjectPath,
+            copyTaskName = "copyLicenseeReportAndroid",
+            platformResourceTaskSuffix = "AndroidMain",
+        )
+    }
+}
+
+/**
+ * Wires the license copy task into the compose resource processing pipeline for a given platform.
+ *
+ * The platform-specific prepare task (e.g. `prepareComposeResourcesTaskForAndroidMain`) gains a
+ * [dependsOn] on the copy task, pulling it into the task graph only when that platform is built.
+ * The common resource tasks use [mustRunAfter] so they wait for the copy when it is in the graph,
+ * without forcing other platforms' licensee tasks to run.
+ */
+private fun wireComposeResourceDependency(
+    resourceProject: Project,
+    appProjectPath: String,
+    copyTaskName: String,
+    platformResourceTaskSuffix: String,
+) {
+    val copyTaskPath = "$appProjectPath:$copyTaskName"
+    resourceProject.tasks.configureEach {
+        when {
+            name == "prepareComposeResourcesTaskFor$platformResourceTaskSuffix" -> {
+                dependsOn(copyTaskPath)
+            }
+            name == "copyNonXmlValueResourcesForCommonMain" ||
+                name == "prepareComposeResourcesTaskForCommonMain" -> {
+                mustRunAfter(copyTaskPath)
             }
         }
     }
@@ -107,12 +137,13 @@ private fun Project.registerCopyLicenseeReportTask(
     licenseeTaskName: String,
     reportPath: String,
     sourceName: String,
+    sourceProject: Project = this,
 ) {
     tasks.register(taskName) {
         dependsOn(licenseeTaskName)
 
         val outputDir = project(":packages:core:ui:resources").file("src/commonMain/composeResources/files")
-        val inputFile = layout.buildDirectory.file(reportPath)
+        val inputFile = sourceProject.layout.buildDirectory.file(reportPath)
 
         doLast {
             if (inputFile.get().asFile.exists()) {
