@@ -12,12 +12,19 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.compose.runtime)
+                implementation(libs.compose.ui)
                 implementation(project(":packages:core:settings"))
             }
         }
 
         commonTest {
             dependencies {
+            }
+        }
+
+        androidMain {
+            dependencies {
+                implementation(libs.androidx.core)
             }
         }
     }

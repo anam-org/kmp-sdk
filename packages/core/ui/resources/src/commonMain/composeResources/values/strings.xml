@@ -13,6 +13,8 @@
     <string name="messages_send_content_description">Send</string>
     <string name="session_hangup_content_description">Hangup</string>
     <string name="session_call_content_description">Call</string>
+    <string name="session_mute_content_description">Mute</string>
+    <string name="session_unmute_content_description">Unmute</string>
 
     <!-- API Key -->
     <string name="api_key_description">To get started, enter your API key.\nGenerate one for free at %1$s</string>

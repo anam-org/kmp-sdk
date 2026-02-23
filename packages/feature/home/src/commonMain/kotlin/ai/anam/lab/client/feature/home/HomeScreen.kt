@@ -2,6 +2,8 @@ package ai.anam.lab.client.feature.home
 
 import ai.anam.lab.client.core.navigation.SharedTransitionKeys
 import ai.anam.lab.client.core.navigation.sharedBoundsIfAvailable
+import ai.anam.lab.client.core.ui.core.ImmersiveMode
+import ai.anam.lab.client.core.ui.core.isLandscape
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
 import ai.anam.lab.client.core.ui.resources.generated.resources.app_name
 import ai.anam.lab.client.core.ui.resources.generated.resources.settings_content_description
@@ -11,6 +13,7 @@ import ai.anam.lab.client.feature.llms.LlmsView
 import ai.anam.lab.client.feature.messages.MessagesView
 import ai.anam.lab.client.feature.session.SessionView
 import ai.anam.lab.client.feature.voices.VoicesView
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,8 +52,10 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = metroViewModel()) {
     val viewState by viewModel.state.collectAsState()
+    val isLandscape = isLandscape()
     HomeScreen(
         viewState = viewState,
+        isLandscape = isLandscape,
         onTabSelect = viewModel::selectTab,
         onSettingsClick = viewModel::selectSettings,
         onDismissWelcome = viewModel::dismissWelcomeOverlay,
@@ -68,51 +73,70 @@ fun HomeScreen(
     onDismissWelcome: () -> Unit,
     onSaveApiKey: (String) -> Unit,
     modifier: Modifier = Modifier,
+    isLandscape: Boolean = false,
 ) {
-    Box(modifier = modifier) {
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.surface,
-            topBar = {
-                TopAppBar(
-                    modifier = Modifier.sharedBoundsIfAvailable(key = SharedTransitionKeys.TOP_BAR),
-                    title = {
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = stringResource(Res.string.app_name),
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.align(Alignment.Center),
-                            )
+    // In landscape, replace the entire portrait layout with a fullscreen video session.
+    // The welcome overlay suppresses this so the user can still interact with the API key
+    // input when the overlay is visible.
+    val showFullScreenSession = isLandscape && !viewState.showWelcomeOverlay
 
-                            IconButton(
-                                onClick = onSettingsClick,
-                                modifier = Modifier.align(Alignment.CenterEnd),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Settings,
-                                    contentDescription = stringResource(Res.string.settings_content_description),
-                                )
-                            }
-                        }
-                    },
-                )
-            },
-        ) { innerPadding ->
-            HomeView(
-                viewState = viewState,
-                onTabSelect = onTabSelect,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .padding(innerPadding)
-                    .fillMaxSize(),
+    ImmersiveMode(enabled = showFullScreenSession)
+
+    Crossfade(targetState = showFullScreenSession, label = "HomeScreenLayout") { fullScreen ->
+        if (fullScreen) {
+            SessionView(
+                isFullScreen = true,
+                modifier = modifier.fillMaxSize(),
             )
-        }
+        } else {
+            Box(modifier = modifier) {
+                Scaffold(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    topBar = {
+                        TopAppBar(
+                            modifier = Modifier.sharedBoundsIfAvailable(key = SharedTransitionKeys.TOP_BAR),
+                            title = {
+                                Box(modifier = Modifier.fillMaxWidth()) {
+                                    Text(
+                                        text = stringResource(Res.string.app_name),
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        modifier = Modifier.align(Alignment.Center),
+                                    )
 
-        WelcomeOverlay(
-            visible = viewState.showWelcomeOverlay,
-            onDismiss = onDismissWelcome,
-            onSave = onSaveApiKey,
-        )
+                                    IconButton(
+                                        onClick = onSettingsClick,
+                                        modifier = Modifier.align(Alignment.CenterEnd),
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Settings,
+                                            contentDescription = stringResource(
+                                                Res.string.settings_content_description,
+                                            ),
+                                        )
+                                    }
+                                }
+                            },
+                        )
+                    },
+                ) { innerPadding ->
+                    HomeView(
+                        viewState = viewState,
+                        onTabSelect = onTabSelect,
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .padding(innerPadding)
+                            .fillMaxSize(),
+                    )
+                }
+
+                WelcomeOverlay(
+                    visible = viewState.showWelcomeOverlay,
+                    onDismiss = onDismissWelcome,
+                    onSave = onSaveApiKey,
+                )
+            }
+        }
     }
 }
 
