@@ -5,6 +5,8 @@ import ai.anam.lab.client.core.permissions.BindEffect
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
 import ai.anam.lab.client.core.ui.resources.generated.resources.session_call_content_description
 import ai.anam.lab.client.core.ui.resources.generated.resources.session_hangup_content_description
+import ai.anam.lab.client.core.ui.resources.generated.resources.session_mute_content_description
+import ai.anam.lab.client.core.ui.resources.generated.resources.session_unmute_content_description
 import ai.anam.lab.client.core.ui.resources.generated.resources.welcome_hero
 import ai.anam.lab.client.core.ui.theme.asDisabled
 import ai.anam.lab.client.core.ui.video.AvatarVideo
@@ -49,11 +51,21 @@ import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * @param isFullScreen When `true`, the video fills all available space ([Modifier.fillMaxSize]).
+ *   When `false` (default), the video is constrained to a 16:9 aspect ratio. Used by the home
+ *   screen to switch between an embedded preview (portrait) and fullscreen video (landscape).
+ */
 @Composable
-fun SessionView(modifier: Modifier = Modifier, viewModel: SessionViewModel = metroViewModel()) {
+fun SessionView(
+    modifier: Modifier = Modifier,
+    isFullScreen: Boolean = false,
+    viewModel: SessionViewModel = metroViewModel(),
+) {
     val viewState by viewModel.state.collectAsState()
     SessionView(
         modifier = modifier,
+        isFullScreen = isFullScreen,
         viewState = viewState,
         onStartSession = viewModel::startSession,
         onStopSession = viewModel::stopSession,
@@ -68,13 +80,20 @@ fun SessionView(
     onStopSession: () -> Unit,
     onToggleAudioMute: () -> Unit,
     modifier: Modifier = Modifier,
+    isFullScreen: Boolean = false,
 ) {
     BindEffect(viewState.permissionsManager)
 
-    Box(
-        modifier = modifier
+    val sizeModifier = if (isFullScreen) {
+        Modifier.fillMaxSize()
+    } else {
+        Modifier
             .fillMaxWidth()
-            .aspectRatio(16f / 9f),
+            .aspectRatio(16f / 9f)
+    }
+
+    Box(
+        modifier = modifier.then(sizeModifier),
     ) {
         // Record when the video preview has been started.
         var isPreviewVideoStarted by remember(viewState.sessionState, viewState.videoUrl) {
@@ -118,6 +137,7 @@ fun SessionView(
             modifier = Modifier.fillMaxSize(),
         )
 
+        val controlsPadding = if (isFullScreen) 24.dp else 8.dp
         SessionControls(
             isSessionActive = !isIdle,
             isAudioMute = viewState.isAudioMute,
@@ -125,6 +145,7 @@ fun SessionView(
             onStartSession = onStartSession,
             onStopSession = onStopSession,
             onToggleAudioMute = onToggleAudioMute,
+            modifier = Modifier.padding(controlsPadding),
         )
     }
 }
@@ -187,9 +208,7 @@ fun SessionControls(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp),
+        modifier = modifier.fillMaxSize(),
     ) {
         AnimatedVisibility(
             visible = isSessionActive,
@@ -283,7 +302,11 @@ fun MuteButton(isMuted: Boolean, onClick: () -> Unit, modifier: Modifier = Modif
     ) {
         Icon(
             imageVector = if (isMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
-            contentDescription = if (isMuted) "Unmute" else "Mute",
+            contentDescription = if (isMuted) {
+                stringResource(Res.string.session_unmute_content_description)
+            } else {
+                stringResource(Res.string.session_mute_content_description)
+            },
         )
     }
 }

@@ -66,7 +66,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Runtime",
         "spdxLicenses": [
             {
@@ -82,7 +82,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime-annotation",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Runtime Annotation",
         "spdxLicenses": [
             {
@@ -98,7 +98,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime-annotation-iossimulatorarm64",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Runtime Annotation",
         "spdxLicenses": [
             {
@@ -114,7 +114,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime-iossimulatorarm64",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Runtime",
         "spdxLicenses": [
             {
@@ -130,7 +130,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime-retain",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Runtime Retain",
         "spdxLicenses": [
             {
@@ -146,7 +146,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime-retain-iossimulatorarm64",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Runtime Retain",
         "spdxLicenses": [
             {
@@ -162,7 +162,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime-saveable",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Saveable",
         "spdxLicenses": [
             {
@@ -178,7 +178,7 @@
     {
         "groupId": "androidx.compose.runtime",
         "artifactId": "runtime-saveable-iossimulatorarm64",
-        "version": "1.10.2",
+        "version": "1.10.3",
         "name": "Compose Saveable",
         "spdxLicenses": [
             {
@@ -386,7 +386,7 @@
     {
         "groupId": "androidx.navigationevent",
         "artifactId": "navigationevent",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "name": "Navigation Event",
         "spdxLicenses": [
             {
@@ -402,7 +402,7 @@
     {
         "groupId": "androidx.navigationevent",
         "artifactId": "navigationevent-iossimulatorarm64",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "name": "Navigation Event",
         "spdxLicenses": [
             {
@@ -1500,7 +1500,7 @@
     {
         "groupId": "io.github.ahmad-hamwi",
         "artifactId": "lazy-pagination-compose",
-        "version": "1.7.1",
+        "version": "1.7.3",
         "name": "Lazy Pagination Compose",
         "spdxLicenses": [
             {
@@ -1516,7 +1516,7 @@
     {
         "groupId": "io.github.ahmad-hamwi",
         "artifactId": "lazy-pagination-compose-iossimulatorarm64",
-        "version": "1.7.1",
+        "version": "1.7.3",
         "name": "Lazy Pagination Compose",
         "spdxLicenses": [
             {
@@ -2492,7 +2492,7 @@
     {
         "groupId": "org.jetbrains.androidx.navigation",
         "artifactId": "navigation-common",
-        "version": "2.9.1",
+        "version": "2.9.2",
         "name": "Navigation Common",
         "spdxLicenses": [
             {
@@ -2508,7 +2508,7 @@
     {
         "groupId": "org.jetbrains.androidx.navigation",
         "artifactId": "navigation-common-iossimulatorarm64",
-        "version": "2.9.1",
+        "version": "2.9.2",
         "name": "Navigation Common",
         "spdxLicenses": [
             {
@@ -2524,7 +2524,7 @@
     {
         "groupId": "org.jetbrains.androidx.navigation",
         "artifactId": "navigation-compose",
-        "version": "2.9.1",
+        "version": "2.9.2",
         "name": "Compose Navigation",
         "spdxLicenses": [
             {
@@ -2540,7 +2540,7 @@
     {
         "groupId": "org.jetbrains.androidx.navigation",
         "artifactId": "navigation-compose-uikitsimarm64",
-        "version": "2.9.1",
+        "version": "2.9.2",
         "name": "Compose Navigation",
         "spdxLicenses": [
             {
@@ -2556,7 +2556,7 @@
     {
         "groupId": "org.jetbrains.androidx.navigation",
         "artifactId": "navigation-runtime",
-        "version": "2.9.1",
+        "version": "2.9.2",
         "name": "Navigation Runtime",
         "spdxLicenses": [
             {
@@ -2572,7 +2572,7 @@
     {
         "groupId": "org.jetbrains.androidx.navigation",
         "artifactId": "navigation-runtime-iossimulatorarm64",
-        "version": "2.9.1",
+        "version": "2.9.2",
         "name": "Navigation Runtime",
         "spdxLicenses": [
             {
@@ -2636,7 +2636,7 @@
     {
         "groupId": "org.jetbrains.compose.animation",
         "artifactId": "animation",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Animation",
         "spdxLicenses": [
             {
@@ -2652,7 +2652,7 @@
     {
         "groupId": "org.jetbrains.compose.animation",
         "artifactId": "animation-core",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Animation Core",
         "spdxLicenses": [
             {
@@ -2668,7 +2668,7 @@
     {
         "groupId": "org.jetbrains.compose.animation",
         "artifactId": "animation-core-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Animation Core",
         "spdxLicenses": [
             {
@@ -2684,7 +2684,7 @@
     {
         "groupId": "org.jetbrains.compose.animation",
         "artifactId": "animation-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Animation",
         "spdxLicenses": [
             {
@@ -2700,7 +2700,7 @@
     {
         "groupId": "org.jetbrains.compose.annotation-internal",
         "artifactId": "annotation",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Annotation",
         "spdxLicenses": [
             {
@@ -2716,7 +2716,7 @@
     {
         "groupId": "org.jetbrains.compose.collection-internal",
         "artifactId": "collection",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "collections",
         "spdxLicenses": [
             {
@@ -2732,7 +2732,7 @@
     {
         "groupId": "org.jetbrains.compose.components",
         "artifactId": "components-resources",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Resources for Compose JB",
         "spdxLicenses": [
             {
@@ -2748,7 +2748,7 @@
     {
         "groupId": "org.jetbrains.compose.components",
         "artifactId": "components-resources-iosSimulatorArm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Resources for Compose JB",
         "spdxLicenses": [
             {
@@ -2764,7 +2764,7 @@
     {
         "groupId": "org.jetbrains.compose.foundation",
         "artifactId": "foundation",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Foundation",
         "spdxLicenses": [
             {
@@ -2780,7 +2780,7 @@
     {
         "groupId": "org.jetbrains.compose.foundation",
         "artifactId": "foundation-layout",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Layouts",
         "spdxLicenses": [
             {
@@ -2796,7 +2796,7 @@
     {
         "groupId": "org.jetbrains.compose.foundation",
         "artifactId": "foundation-layout-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Layouts",
         "spdxLicenses": [
             {
@@ -2812,7 +2812,7 @@
     {
         "groupId": "org.jetbrains.compose.foundation",
         "artifactId": "foundation-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Foundation",
         "spdxLicenses": [
             {
@@ -2828,7 +2828,7 @@
     {
         "groupId": "org.jetbrains.compose.material",
         "artifactId": "material",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Material Components",
         "spdxLicenses": [
             {
@@ -2908,7 +2908,7 @@
     {
         "groupId": "org.jetbrains.compose.material",
         "artifactId": "material-ripple",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Material Ripple",
         "spdxLicenses": [
             {
@@ -2924,7 +2924,7 @@
     {
         "groupId": "org.jetbrains.compose.material",
         "artifactId": "material-ripple-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Material Ripple",
         "spdxLicenses": [
             {
@@ -2940,7 +2940,7 @@
     {
         "groupId": "org.jetbrains.compose.material",
         "artifactId": "material-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Material Components",
         "spdxLicenses": [
             {
@@ -2988,7 +2988,7 @@
     {
         "groupId": "org.jetbrains.compose.runtime",
         "artifactId": "runtime",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Runtime",
         "spdxLicenses": [
             {
@@ -3004,7 +3004,7 @@
     {
         "groupId": "org.jetbrains.compose.runtime",
         "artifactId": "runtime-saveable",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Saveable",
         "spdxLicenses": [
             {
@@ -3020,7 +3020,7 @@
     {
         "groupId": "org.jetbrains.compose.runtime",
         "artifactId": "runtime-saveable-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Saveable",
         "spdxLicenses": [
             {
@@ -3036,7 +3036,7 @@
     {
         "groupId": "org.jetbrains.compose.runtime",
         "artifactId": "runtime-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Runtime",
         "spdxLicenses": [
             {
@@ -3052,7 +3052,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose UI primitives",
         "spdxLicenses": [
             {
@@ -3068,7 +3068,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-backhandler",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Multiplatform BackHandler",
         "spdxLicenses": [
             {
@@ -3084,7 +3084,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-backhandler-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Multiplatform BackHandler",
         "spdxLicenses": [
             {
@@ -3100,7 +3100,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-geometry",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Geometry",
         "spdxLicenses": [
             {
@@ -3116,7 +3116,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-geometry-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Geometry",
         "spdxLicenses": [
             {
@@ -3132,7 +3132,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-graphics",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Graphics",
         "spdxLicenses": [
             {
@@ -3148,7 +3148,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-graphics-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Graphics",
         "spdxLicenses": [
             {
@@ -3164,7 +3164,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-text",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose UI Text",
         "spdxLicenses": [
             {
@@ -3180,7 +3180,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-text-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose UI Text",
         "spdxLicenses": [
             {
@@ -3196,7 +3196,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-uikit",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose UIKit Utils",
         "spdxLicenses": [
             {
@@ -3212,7 +3212,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-uikit-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose UIKit Utils",
         "spdxLicenses": [
             {
@@ -3228,7 +3228,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose UI primitives",
         "spdxLicenses": [
             {
@@ -3244,7 +3244,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-unit",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Unit",
         "spdxLicenses": [
             {
@@ -3260,7 +3260,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-unit-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Unit",
         "spdxLicenses": [
             {
@@ -3276,7 +3276,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-util",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Util",
         "spdxLicenses": [
             {
@@ -3292,7 +3292,7 @@
     {
         "groupId": "org.jetbrains.compose.ui",
         "artifactId": "ui-util-uikitsimarm64",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "name": "Compose Util",
         "spdxLicenses": [
             {
@@ -3612,7 +3612,7 @@
     {
         "groupId": "org.jetbrains.skiko",
         "artifactId": "skiko",
-        "version": "0.9.37.3",
+        "version": "0.9.37.4",
         "name": "Skiko MPP",
         "spdxLicenses": [
             {
@@ -3628,7 +3628,7 @@
     {
         "groupId": "org.jetbrains.skiko",
         "artifactId": "skiko-iossimulatorarm64",
-        "version": "0.9.37.3",
+        "version": "0.9.37.4",
         "name": "Skiko IosSimulatorArm64",
         "spdxLicenses": [
             {
