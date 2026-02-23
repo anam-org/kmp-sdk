@@ -3,7 +3,7 @@ name: Publish SDK GitHub Release
 on:
   push:
     tags:
-      - "v*"
+      - "sdk/v*"
 
 permissions:
   contents: write
@@ -36,7 +36,7 @@ jobs:
         if: success() && !endsWith(env.VERSION, '-SNAPSHOT')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.VERSION }}
+          tag_name: sdk/v${{ env.VERSION }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,147 @@
+name: Release App
+
+on:
+  push:
+    tags:
+      - "app/v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., 1.0.0)"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-app
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Parse Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build_number: ${{ github.run_number }}
+    steps:
+      - name: Extract version from tag
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG="$INPUT_VERSION"
+          else
+            TAG="${GITHUB_REF#refs/tags/app/v}"
+          fi
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "::error::Invalid version format: '${TAG}'. Expected semver (e.g., 1.0.0)"
+            exit 1
+          fi
+          echo "version=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Releasing version: ${TAG}, build: ${{ github.run_number }}"
+
+  android:
+    name: Android → Google Play
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: "zulu"
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > "${RUNNER_TEMP}/release.keystore"
+
+      - name: Build signed AAB
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          APP_VERSION_NAME: ${{ needs.prepare.outputs.version }}
+          APP_VERSION_CODE: ${{ needs.prepare.outputs.build_number }}
+        run: ./gradlew :apps:android:bundleRelease
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ needs.prepare.outputs.version }}-${{ needs.prepare.outputs.build_number }}
+          path: apps/android/build/outputs/bundle/release/*.aab
+          retention-days: 90
+
+      - name: Upload to Google Play
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: bundle exec fastlane android internal
+
+  ios:
+    name: iOS → TestFlight
+    needs: prepare
+    runs-on: macos-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: "zulu"
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v5
+        with:
+          path: apps/ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('apps/ios/Podfile') }}
+          restore-keys: ${{ runner.os }}-pods-
+
+      - name: Generate Dummy Framework
+        run: ./gradlew :packages:sdk:generateDummyFramework
+
+      - name: Install CocoaPods Dependencies
+        run: pod install --repo-update
+        working-directory: apps/ios
+
+      - name: Build & Upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.IOS_ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.IOS_ASC_ISSUER_ID }}
+          ASC_KEY: ${{ secrets.IOS_ASC_API_KEY }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APP_VERSION: ${{ needs.prepare.outputs.version }}
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+        run: bundle exec fastlane ios beta
+
+      - name: Upload IPA artifact
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ needs.prepare.outputs.version }}-${{ needs.prepare.outputs.build_number }}
+          path: "*.ipa"
+          retention-days: 90

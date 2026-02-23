@@ -30,6 +30,12 @@ This will install:
 - `swiftlint` (Swift code linter for iOS)
 - `cocoapods` (iOS dependency manager)
 
+Then install Ruby dependencies (used by Fastlane for release tooling):
+
+```bash
+bundle install
+```
+
 #### Manual Setup
 
 If you prefer to install dependencies manually:
@@ -46,6 +52,9 @@ brew install swiftlint
 
 # CocoaPods (required for iOS dependencies)
 brew install cocoapods
+
+# Ruby dependencies (Fastlane, for release builds)
+bundle install
 ```
 
 **Additional Setup:**
@@ -87,10 +96,14 @@ Anam/
 │   │       ├── resources/# Resources (fonts, images, etc.)
 │   │       └── theme/    # Theme configuration
 │   │
-│   ├── feature/          # Feature modules
-│   │   └── home/         # Home feature
+│   ├── domain/           # Business logic and data repositories
+│   │
+│   ├── feature/          # Feature modules (avatars, home, session, voices, etc.)
 │   │
 │   └── sdk/              # SDK module for API clients
+│
+├── fastlane/             # Fastlane configuration for app releases
+├── docs/                 # Infrastructure and setup documentation
 │
 └── gradle/
     └── build-logic/      # Custom Gradle conventions and plugins
@@ -190,6 +203,10 @@ A modern web browser with WebAssembly support is required. No Xcode, CocoaPods, 
 ```
 
 The API token from [API Token Setup](#api-token-setup) is read from `gradle.properties` or `local.properties` when running the web app.
+
+## Releasing
+
+See [RELEASING.md](RELEASING.md) for how to publish SDK and app releases, and [docs/RELEASE_SETUP.md](docs/RELEASE_SETUP.md) for one-time infrastructure setup.
 
 ## Tech Stack
 
