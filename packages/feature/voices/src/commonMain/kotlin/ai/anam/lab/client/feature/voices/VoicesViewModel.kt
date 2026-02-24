@@ -17,6 +17,8 @@ import ai.anam.lab.client.domain.data.SetPersonaVoiceInteractor
 import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.Inject
 import io.github.ahmad_hamwi.compose.pagination.PaginationState
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Inject
@@ -31,6 +33,7 @@ class VoicesViewModel(
 ) {
 
     private var paginationState = createPaginationState()
+    private var searchJob: Job? = null
 
     init {
         setState { copy(items = paginationState) }
@@ -49,6 +52,15 @@ class VoicesViewModel(
         }
     }
 
+    fun onQueryChange(query: String) {
+        setState { copy(query = query) }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            resetPagination()
+        }
+    }
+
     fun setVoice(id: String) {
         logger.i(TAG) { "Selecting voice: $id" }
         setState { copy(selectedId = id) }
@@ -62,14 +74,22 @@ class VoicesViewModel(
             fetchVoicesInteractor(
                 page = pageKey,
                 perPage = 10,
-                query = null,
+                query = state.value.query.ifBlank { null },
             ).onLeft { error ->
                 logger.e(TAG) { "Error loading voices: $error" }
-                val exception = when (error) {
-                    is VoiceErrorReason.NotAuthorized -> NotAuthorizedException()
-                    else -> Exception(error.toString())
+                if (error is VoiceErrorReason.VoiceNotFound && pageKey == 1) {
+                    paginationState.appendPage(
+                        items = emptyList(),
+                        nextPageKey = pageKey + 1,
+                        isLastPage = true,
+                    )
+                } else {
+                    val exception = when (error) {
+                        is VoiceErrorReason.NotAuthorized -> NotAuthorizedException()
+                        else -> Exception(error.toString())
+                    }
+                    paginationState.setError(exception)
                 }
-                paginationState.setError(exception)
             }.onRight { page ->
                 logger.i(TAG) { "Loaded new page (${page.data.size} items)" }
                 paginationState.appendPage(
@@ -93,10 +113,15 @@ class VoicesViewModel(
 
     private companion object {
         const val TAG = "VoicesViewModel"
+        const val SEARCH_DEBOUNCE_MS = 300L
     }
 }
 
-data class VoicesViewState(val items: PaginationState<Int, Voice>, val selectedId: String? = null) : ViewState
+data class VoicesViewState(
+    val items: PaginationState<Int, Voice>,
+    val selectedId: String? = null,
+    val query: String = "",
+) : ViewState
 
 fun Voice.toSubtitle(): String {
     return listOfNotNull(provider, gender, country, createdAt.toFormattedDateString())
