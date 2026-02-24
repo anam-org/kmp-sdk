@@ -1,7 +1,10 @@
 package ai.anam.lab.client.feature.llms
 
 import ai.anam.lab.client.core.data.models.Llm
+import ai.anam.lab.client.core.ui.components.CollapsibleHeader
+import ai.anam.lab.client.core.ui.components.PaginationEmptySearchIndicator
 import ai.anam.lab.client.core.ui.components.PaginationErrorIndicator
+import ai.anam.lab.client.core.ui.components.SearchBar
 import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.viewmodel.metroViewModel
 import androidx.compose.foundation.clickable
@@ -26,29 +29,59 @@ import io.github.ahmad_hamwi.compose.pagination.PaginatedLazyColumn
 @Composable
 fun LlmsView(modifier: Modifier = Modifier, viewModel: LlmsViewModel = metroViewModel()) {
     val viewState by viewModel.state.collectAsState()
-    LlmsView(viewState = viewState, onLlmSelect = viewModel::setLlm, modifier = modifier)
+    LlmsView(
+        viewState = viewState,
+        onLlmSelect = viewModel::setLlm,
+        onQueryChange = viewModel::onQueryChange,
+        modifier = modifier,
+    )
 }
 
 @Composable
-fun LlmsView(viewState: LlmsViewState, onLlmSelect: (String) -> Unit, modifier: Modifier = Modifier) {
-    PaginatedLazyColumn(
-        paginationState = viewState.items,
-        modifier = modifier.fillMaxWidth(),
-        firstPageErrorIndicator = { exception ->
-            PaginationErrorIndicator(
-                exception = exception,
-                onRetry = { viewState.items.retryLastFailedRequest() },
+fun LlmsView(
+    viewState: LlmsViewState,
+    onLlmSelect: (String) -> Unit,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CollapsibleHeader(
+        header = {
+            SearchBar(
+                query = viewState.query,
+                onQueryChange = onQueryChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
             )
         },
+        modifier = modifier.fillMaxWidth(),
     ) {
-        itemsIndexed(
-            viewState.items.allItems!!,
-        ) { _, item ->
-            Llm(llm = item, isSelected = viewState.selectedId == item.id, onLlmSelect = onLlmSelect)
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
+        PaginatedLazyColumn(
+            paginationState = viewState.items,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            firstPageErrorIndicator = { exception ->
+                PaginationErrorIndicator(
+                    exception = exception,
+                    onRetry = { viewState.items.retryLastFailedRequest() },
+                )
+            },
+            firstPageEmptyIndicator = {
+                if (viewState.query.isNotBlank()) {
+                    PaginationEmptySearchIndicator(
+                        onReset = { onQueryChange("") },
+                    )
+                }
+            },
+        ) {
+            itemsIndexed(
+                viewState.items.allItems!!,
+            ) { _, item ->
+                Llm(llm = item, isSelected = viewState.selectedId == item.id, onLlmSelect = onLlmSelect)
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
+            }
         }
     }
 }

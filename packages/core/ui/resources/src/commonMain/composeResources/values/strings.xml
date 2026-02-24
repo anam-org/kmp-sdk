@@ -1,6 +1,7 @@
 <resources>
     <!-- Global -->
     <string name="app_name">Anam</string>
+    <string name="search_hint">Search</string>
 
     <!-- Tabs -->
     <string name="tab_avatars">Avatars</string>
@@ -59,4 +60,7 @@
     <string name="error_not_authorized_description">Add an API key in Settings to get started.</string>
     <string name="error_generic_title">Something went wrong</string>
     <string name="error_retry_button">Retry</string>
+    <string name="empty_search_title">No results found</string>
+    <string name="empty_search_description">Try a different search term.</string>
+    <string name="empty_search_reset">Reset</string>
 </resources>
