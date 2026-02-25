@@ -1,6 +1,7 @@
 package ai.anam.lab.client.feature.avatars
 
 import ai.anam.lab.client.core.data.models.Avatar
+import ai.anam.lab.client.core.data.models.isOneShot
 import ai.anam.lab.client.core.datetime.toFormattedDateString
 import ai.anam.lab.client.core.ui.components.CollapsibleHeader
 import ai.anam.lab.client.core.ui.components.PaginationEmptySearchIndicator
@@ -9,8 +10,10 @@ import ai.anam.lab.client.core.ui.components.PaginationProgressIndicator
 import ai.anam.lab.client.core.ui.components.SearchBar
 import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
+import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_delete_content_description
 import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_one_shot
 import ai.anam.lab.client.core.viewmodel.metroViewModel
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,8 +27,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -50,6 +57,7 @@ fun AvatarsView(modifier: Modifier = Modifier, viewModel: AvatarsViewModel = met
     AvatarsView(
         viewState = viewState,
         onAvatarSelect = viewModel::setAvatar,
+        onDeleteAvatar = viewModel::deleteAvatar,
         onQueryChange = viewModel::onQueryChange,
         onOneShotChange = viewModel::onOneShotChange,
         onResetFilters = viewModel::resetFilters,
@@ -61,6 +69,7 @@ fun AvatarsView(modifier: Modifier = Modifier, viewModel: AvatarsViewModel = met
 fun AvatarsView(
     viewState: AvatarsViewState,
     onAvatarSelect: (String, String) -> Unit,
+    onDeleteAvatar: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     onOneShotChange: (Boolean) -> Unit,
     onResetFilters: () -> Unit,
@@ -138,6 +147,7 @@ fun AvatarsView(
                         avatar = item,
                         isSelected = viewState.selectedId == item.id,
                         onAvatarSelect = onAvatarSelect,
+                        onDeleteAvatar = if (item.isOneShot()) onDeleteAvatar else null,
                     )
                 }
             }
@@ -152,6 +162,7 @@ fun Avatar(
     isSelected: Boolean,
     onAvatarSelect: (String, String) -> Unit,
     modifier: Modifier = Modifier,
+    onDeleteAvatar: ((String) -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -173,12 +184,39 @@ fun Avatar(
             )
 
             if (isSelected) {
-                SelectedBadge(
+                Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp),
-                )
+                        .size(44.dp)
+                        .align(Alignment.TopEnd),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    SelectedBadge(modifier = Modifier.size(24.dp))
+                }
+            }
+
+            if (onDeleteAvatar != null) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .align(Alignment.BottomEnd)
+                        .clickable { onDeleteAvatar(avatar.id) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.8f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(Res.string.avatars_delete_content_description),
+                            tint = MaterialTheme.colorScheme.onError,
+                            modifier = Modifier.padding(4.dp),
+                        )
+                    }
+                }
             }
         }
 

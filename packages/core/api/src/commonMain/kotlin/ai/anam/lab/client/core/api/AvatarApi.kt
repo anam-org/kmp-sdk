@@ -1,5 +1,6 @@
 package ai.anam.lab.client.core.api
 
+import de.jensklingenberg.ktorfit.http.DELETE
 import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Path
 import de.jensklingenberg.ktorfit.http.Query
@@ -13,6 +14,12 @@ interface AvatarApi {
      */
     @GET("v1/avatars/{id}")
     suspend fun getAvatar(@Path("id") id: String): Avatar
+
+    /**
+     * Deletes an avatar by ID.
+     */
+    @DELETE("v1/avatars/{id}")
+    suspend fun deleteAvatar(@Path("id") id: String)
 
     /**
      * Returns all avatars associated with the query.
