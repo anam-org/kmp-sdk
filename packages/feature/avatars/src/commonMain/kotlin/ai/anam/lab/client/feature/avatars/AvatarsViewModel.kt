@@ -7,31 +7,45 @@ import ai.anam.lab.client.core.data.models.Avatar
 import ai.anam.lab.client.core.data.models.AvatarErrorReason
 import ai.anam.lab.client.core.data.models.isLastPage
 import ai.anam.lab.client.core.logging.Logger
+import ai.anam.lab.client.core.notifications.ErrorCode
+import ai.anam.lab.client.core.notifications.Notification
+import ai.anam.lab.client.core.ui.resources.generated.resources.Res
+import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_delete_cancel_label
+import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_delete_confirm_label
+import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_delete_confirm_message
 import ai.anam.lab.client.core.viewmodel.BaseViewModel
 import ai.anam.lab.client.core.viewmodel.ViewState
+import ai.anam.lab.client.domain.data.DeleteAvatarInteractor
 import ai.anam.lab.client.domain.data.FetchAvatarsInteractor
 import ai.anam.lab.client.domain.data.ObserveApiKeyChangedInteractor
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarIdInteractor
 import ai.anam.lab.client.domain.data.SetPersonaAvatarInteractor
+import ai.anam.lab.client.domain.notifications.SendNotificationInteractor
 import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.Inject
+import io.github.ahmad_hamwi.compose.pagination.ExperimentalPaginationApi
 import io.github.ahmad_hamwi.compose.pagination.PaginationState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 @Inject
 class AvatarsViewModel(
     private val fetchAvatarsInteractor: FetchAvatarsInteractor,
+    private val deleteAvatarInteractor: DeleteAvatarInteractor,
     private val observeCurrentAvatarIdInteractor: ObserveCurrentAvatarIdInteractor,
     private val setPersonaAvatarInteractor: SetPersonaAvatarInteractor,
     private val observeApiKeyChangedInteractor: ObserveApiKeyChangedInteractor,
+    private val sendNotificationInteractor: SendNotificationInteractor,
     private val logger: Logger,
 ) : BaseViewModel<AvatarsViewState>(
     AvatarsViewState(items = PaginationState(initialPageKey = 1, onRequestPage = {})),
 ) {
 
     private var paginationState = createPaginationState()
+    private var lastNextPageKey: Int = 2
+    private var lastIsLastPage: Boolean = false
     private var searchJob: Job? = null
 
     init {
@@ -78,13 +92,77 @@ class AvatarsViewModel(
         viewModelScope.launch { setPersonaAvatarInteractor(id, name) }
     }
 
+    fun deleteAvatar(id: String) {
+        logger.i(TAG) { "Requesting delete confirmation for avatar: $id" }
+        viewModelScope.launch {
+            sendNotificationInteractor(
+                Notification.Confirmation(
+                    message = getString(Res.string.avatars_delete_confirm_message),
+                    confirmLabel = getString(Res.string.avatars_delete_confirm_label),
+                    dismissLabel = getString(Res.string.avatars_delete_cancel_label),
+                    onConfirm = { performDeleteAvatar(id) },
+                ),
+            )
+        }
+    }
+
+    // After a successful delete, we can't simply remove the item from the local list because server-side pagination
+    // indices shift by -1 — the next page load would skip an item at the boundary. Instead, we re-fetch all currently
+    // loaded pages in a single request (page=1, perPage=pagesLoaded * PAGE_SIZE) to get a server-consistent list, then
+    // replace the pagination data in place via appendPageWithUpdates. This preserves the user's scroll position while
+    // keeping page boundaries aligned for subsequent page loads. If the re-fetch size exceeds the API's maximum page
+    // size (MAX_PAGE_SIZE), we fall back to a full pagination reset.
+    @OptIn(ExperimentalPaginationApi::class)
+    private suspend fun performDeleteAvatar(id: String) {
+        logger.i(TAG) { "Deleting avatar: $id" }
+        deleteAvatarInteractor(id)
+            .onRight {
+                // Re-fetch everything we've loaded so far in one call to stay aligned with server pagination offsets.
+                val pagesLoaded = lastNextPageKey - 1
+                val refetchSize = pagesLoaded * PAGE_SIZE
+                if (refetchSize > MAX_PAGE_SIZE) {
+                    resetPagination()
+                    return@onRight
+                }
+                fetchAvatarsInteractor(
+                    page = 1,
+                    perPage = refetchSize,
+                    query = state.value.query.ifBlank { null },
+                    onlyOneShot = state.value.onlyOneShot.takeIf { it },
+                ).onRight { page ->
+                    lastIsLastPage = page.meta.isLastPage()
+                    paginationState.appendPageWithUpdates(
+                        allItems = page.data,
+                        nextPageKey = lastNextPageKey,
+                        isLastPage = lastIsLastPage,
+                    )
+                }.onLeft {
+                    // Re-fetch failed — fall back to a full reset.
+                    resetPagination()
+                }
+            }
+            .onLeft { error ->
+                logger.e(TAG) { "Error deleting avatar: $error" }
+                val message = when (error) {
+                    is AvatarErrorReason.Unknown -> error.message
+                    else -> error.toString()
+                }
+                sendNotificationInteractor(
+                    Notification.Error(
+                        errorCode = ErrorCode.API_ERROR,
+                        customMessage = message,
+                    ),
+                )
+            }
+    }
+
     private fun loadPage(pageKey: Int) {
         logger.i(TAG) { "Loading Page: $pageKey" }
 
         viewModelScope.launch {
             fetchAvatarsInteractor(
                 page = pageKey,
-                perPage = 10,
+                perPage = PAGE_SIZE,
                 query = state.value.query.ifBlank { null },
                 onlyOneShot = state.value.onlyOneShot.takeIf { it },
             ).onLeft { error ->
@@ -94,10 +172,12 @@ class AvatarsViewModel(
                 // indicator instead of an error. On later pages a 404 is unexpected, so
                 // fall through to the normal error path.
                 if (error is AvatarErrorReason.AvatarNotFound && pageKey == 1) {
+                    lastNextPageKey = pageKey + 1
+                    lastIsLastPage = true
                     paginationState.appendPage(
                         items = emptyList(),
-                        nextPageKey = pageKey + 1,
-                        isLastPage = true,
+                        nextPageKey = lastNextPageKey,
+                        isLastPage = lastIsLastPage,
                     )
                 } else {
                     val exception = when (error) {
@@ -108,10 +188,12 @@ class AvatarsViewModel(
                 }
             }.onRight { page ->
                 logger.i(TAG) { "Loaded new page (${page.data.size} items)" }
+                lastNextPageKey = pageKey + 1
+                lastIsLastPage = page.meta.isLastPage()
                 paginationState.appendPage(
                     items = page.data,
-                    nextPageKey = pageKey + 1,
-                    isLastPage = page.meta.isLastPage(),
+                    nextPageKey = lastNextPageKey,
+                    isLastPage = lastIsLastPage,
                 )
             }
         }
@@ -124,11 +206,15 @@ class AvatarsViewModel(
 
     private fun resetPagination() {
         paginationState = createPaginationState()
+        lastNextPageKey = 2
+        lastIsLastPage = false
         setState { copy(items = paginationState) }
     }
 
     private companion object {
         const val TAG = "AvatarsViewModel"
+        const val PAGE_SIZE = 10
+        const val MAX_PAGE_SIZE = 100
         const val SEARCH_DEBOUNCE_MS = 300L
     }
 }

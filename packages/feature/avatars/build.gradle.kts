@@ -12,6 +12,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.compose.material3)
+                implementation(libs.compose.material.icons.extended)
                 implementation(libs.compose.components.resources)
                 implementation(libs.androidx.navigation.compose)
                 implementation(libs.androidx.lifecycle.viewmodelCompose)
@@ -28,11 +29,17 @@ kotlin {
                 implementation(project(":packages:core:ui:resources"))
 
                 implementation(project(":packages:domain:data"))
+                implementation(project(":packages:domain:notifications"))
             }
         }
 
         commonTest {
             dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.assertk)
+                implementation(libs.turbine)
+                implementation(project(":packages:core:test-fixtures"))
             }
         }
     }

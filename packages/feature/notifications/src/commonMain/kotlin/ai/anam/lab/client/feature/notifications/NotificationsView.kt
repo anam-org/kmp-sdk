@@ -3,7 +3,9 @@ package ai.anam.lab.client.feature.notifications
 import ai.anam.lab.client.core.notifications.ErrorCode
 import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
+import ai.anam.lab.client.core.ui.resources.generated.resources.error_api_error
 import ai.anam.lab.client.core.ui.resources.generated.resources.error_sdk_error
+import ai.anam.lab.client.core.ui.resources.generated.resources.notification_confirm_title
 import ai.anam.lab.client.core.ui.resources.generated.resources.notification_error_title
 import ai.anam.lab.client.core.ui.resources.generated.resources.notification_info_title
 import ai.anam.lab.client.core.ui.resources.generated.resources.notification_ok_button
@@ -17,6 +19,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.font.FontWeight
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -28,12 +31,13 @@ fun NotificationsView(viewModel: NotificationsViewModel = metroViewModel()) {
         NotificationDialog(
             notification = currentNotification,
             onDismiss = { viewModel.dismissNotification() },
+            onConfirm = { viewModel.confirmNotification() },
         )
     }
 }
 
 @Composable
-private fun NotificationDialog(notification: Notification, onDismiss: () -> Unit) {
+private fun NotificationDialog(notification: Notification, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -43,8 +47,10 @@ private fun NotificationDialog(notification: Notification, onDismiss: () -> Unit
                     is Notification.Warning -> stringResource(Res.string.notification_warning_title)
                     is Notification.Info -> stringResource(Res.string.notification_info_title)
                     is Notification.Success -> stringResource(Res.string.notification_success_title)
+                    is Notification.Confirmation -> stringResource(Res.string.notification_confirm_title)
                 },
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
             )
         },
         text = {
@@ -54,9 +60,26 @@ private fun NotificationDialog(notification: Notification, onDismiss: () -> Unit
             )
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.notification_ok_button))
+            TextButton(
+                onClick = if (notification is Notification.Confirmation) onConfirm else onDismiss,
+            ) {
+                Text(
+                    text = if (notification is Notification.Confirmation) {
+                        notification.confirmLabel
+                    } else {
+                        stringResource(Res.string.notification_ok_button)
+                    },
+                )
             }
+        },
+        dismissButton = if (notification is Notification.Confirmation) {
+            {
+                TextButton(onClick = onDismiss) {
+                    Text(notification.dismissLabel)
+                }
+            }
+        } else {
+            null
         },
     )
 }
@@ -67,10 +90,12 @@ private fun getNotificationMessage(notification: Notification): String {
         is Notification.Error -> {
             when (notification.errorCode) {
                 ErrorCode.SDK_ERROR -> notification.customMessage ?: stringResource(Res.string.error_sdk_error)
+                ErrorCode.API_ERROR -> notification.customMessage ?: stringResource(Res.string.error_api_error)
             }
         }
         is Notification.Warning -> notification.message
         is Notification.Info -> notification.message
         is Notification.Success -> notification.message
+        is Notification.Confirmation -> notification.message
     }
 }

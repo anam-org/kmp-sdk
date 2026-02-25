@@ -15,7 +15,13 @@ data class Avatar(
     val imageUrl: String,
     val videoUrl: String,
     val updatedAt: Instant,
+    val createdByOrganizationId: String? = null,
 )
+
+/**
+ * Returns `true` if this avatar is a one-shot avatar (created by an organization).
+ */
+fun Avatar.isOneShot(): Boolean = createdByOrganizationId != null
 
 /**
  * Represents the reason why fetching an avatar failed.
@@ -49,6 +55,7 @@ fun ApiAvatar.toAvatar() = Avatar(
     imageUrl = imageUrl,
     videoUrl = videoUrl,
     updatedAt = updatedAt,
+    createdByOrganizationId = createdByOrganizationId,
 )
 
 /**
@@ -77,6 +84,13 @@ fun ApiResult<ApiAvatar>.toAvatarResult(): Either<AvatarErrorReason, Avatar> {
 fun ApiResult<ApiPagedList<ApiAvatar>>.toAvatarListResult(): Either<AvatarErrorReason, PagedList<Avatar>> {
     return when (this) {
         is ApiResult.Success -> Either.Right(data.toPagedList { it.toAvatar() })
+        is ApiResult.Error -> Either.Left(toAvatarErrorReason())
+    }
+}
+
+fun ApiResult<Unit>.toAvatarUnitResult(): Either<AvatarErrorReason, Unit> {
+    return when (this) {
+        is ApiResult.Success -> Either.Right(Unit)
         is ApiResult.Error -> Either.Left(toAvatarErrorReason())
     }
 }

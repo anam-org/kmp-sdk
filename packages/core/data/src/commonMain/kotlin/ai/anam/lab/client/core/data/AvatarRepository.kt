@@ -10,6 +10,7 @@ import ai.anam.lab.client.core.data.models.AvatarErrorReason
 import ai.anam.lab.client.core.data.models.PagedList
 import ai.anam.lab.client.core.data.models.toAvatarListResult
 import ai.anam.lab.client.core.data.models.toAvatarResult
+import ai.anam.lab.client.core.data.models.toAvatarUnitResult
 import ai.anam.lab.client.core.di.Dispatcher
 import ai.anam.lab.client.core.di.DispatcherType
 import ai.anam.lab.client.core.logging.Logger
@@ -76,6 +77,28 @@ class AvatarRepository(
                 )
             },
         )
+    }
+
+    suspend fun deleteAvatar(id: String): Either<AvatarErrorReason, Unit> = withContext(ioDispatcher) {
+        logger.i(TAG) { "Deleting Avatar: $id" }
+        cancellableRunCatching { apiCall { avatarApi.deleteAvatar(id) } }
+            .fold(
+                onSuccess = { apiResult ->
+                    logger.i(TAG) {
+                        if (apiResult is ApiResult.Success) "Success: deleted $id" else "Error: $apiResult"
+                    }
+                    apiResult.toAvatarUnitResult()
+                },
+                onFailure = { exception ->
+                    logger.i(TAG, exception) { "Unable to delete avatar" }
+                    Either.Left(
+                        AvatarErrorReason.Unknown(
+                            message = "Failed to delete avatar: An unexpected error occurred",
+                            cause = exception,
+                        ),
+                    )
+                },
+            )
     }
 
     private companion object {

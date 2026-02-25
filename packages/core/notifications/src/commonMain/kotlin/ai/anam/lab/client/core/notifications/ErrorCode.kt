@@ -6,4 +6,5 @@ package ai.anam.lab.client.core.notifications
  */
 enum class ErrorCode {
     SDK_ERROR,
+    API_ERROR,
 }

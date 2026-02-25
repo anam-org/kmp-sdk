@@ -7,6 +7,7 @@ import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.notifications.ObserveNotificationsInteractor
 import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.Inject
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 @Inject
@@ -27,6 +28,25 @@ class NotificationsViewModel(
     fun dismissNotification() {
         logger.i(TAG) { "Dismissing notification" }
         setState { copy(currentNotification = null) }
+    }
+
+    fun confirmNotification() {
+        val notification = state.value.currentNotification
+        if (notification is Notification.Confirmation) {
+            logger.i(TAG) { "Confirming notification" }
+            dismissNotification()
+            viewModelScope.launch {
+                try {
+                    notification.onConfirm()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    logger.e(TAG, e) { "Confirmation action failed" }
+                }
+            }
+        } else {
+            dismissNotification()
+        }
     }
 
     private companion object {
