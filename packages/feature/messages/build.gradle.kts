@@ -35,6 +35,11 @@ kotlin {
 
         commonTest {
             dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.assertk)
+                implementation(libs.turbine)
+                implementation(project(":packages:core:test-fixtures"))
             }
         }
     }
