@@ -7,12 +7,15 @@ import ai.anam.lab.client.core.ui.components.PaginationEmptySearchIndicator
 import ai.anam.lab.client.core.ui.components.PaginationErrorIndicator
 import ai.anam.lab.client.core.ui.components.SearchBar
 import ai.anam.lab.client.core.ui.components.SelectedBadge
+import ai.anam.lab.client.core.ui.resources.generated.resources.Res
+import ai.anam.lab.client.core.ui.resources.generated.resources.avatars_one_shot
 import ai.anam.lab.client.core.viewmodel.metroViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,9 +24,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import io.github.ahmad_hamwi.compose.pagination.PaginatedLazyVerticalGrid
 import kotlin.time.ExperimentalTime
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AvatarsView(modifier: Modifier = Modifier, viewModel: AvatarsViewModel = metroViewModel()) {
@@ -43,6 +50,8 @@ fun AvatarsView(modifier: Modifier = Modifier, viewModel: AvatarsViewModel = met
         viewState = viewState,
         onAvatarSelect = viewModel::setAvatar,
         onQueryChange = viewModel::onQueryChange,
+        onOneShotChange = viewModel::onOneShotChange,
+        onResetFilters = viewModel::resetFilters,
         modifier = modifier,
     )
 }
@@ -52,6 +61,8 @@ fun AvatarsView(
     viewState: AvatarsViewState,
     onAvatarSelect: (String, String) -> Unit,
     onQueryChange: (String) -> Unit,
+    onOneShotChange: (Boolean) -> Unit,
+    onResetFilters: () -> Unit,
     modifier: Modifier = Modifier,
     minColumns: Int = 2,
     maxColumns: Int = 4,
@@ -62,13 +73,34 @@ fun AvatarsView(
 
         CollapsibleHeader(
             header = {
-                SearchBar(
-                    query = viewState.query,
-                    onQueryChange = onQueryChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(bottom = 16.dp),
+                ) {
+                    SearchBar(
+                        query = viewState.query,
+                        onQueryChange = onQueryChange,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    CompositionLocalProvider(
+                        LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Checkbox(
+                                checked = viewState.onlyOneShot,
+                                onCheckedChange = onOneShotChange,
+                            )
+                            Text(
+                                text = stringResource(Res.string.avatars_one_shot),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                }
             },
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -85,9 +117,9 @@ fun AvatarsView(
                     )
                 },
                 firstPageEmptyIndicator = {
-                    if (viewState.query.isNotBlank()) {
+                    if (viewState.query.isNotBlank() || viewState.onlyOneShot) {
                         PaginationEmptySearchIndicator(
-                            onReset = { onQueryChange("") },
+                            onReset = onResetFilters,
                         )
                     }
                 },

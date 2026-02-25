@@ -60,6 +60,18 @@ class AvatarsViewModel(
         }
     }
 
+    fun onOneShotChange(enabled: Boolean) {
+        setState { copy(onlyOneShot = enabled) }
+        searchJob?.cancel()
+        resetPagination()
+    }
+
+    fun resetFilters() {
+        setState { copy(query = "", onlyOneShot = false) }
+        searchJob?.cancel()
+        resetPagination()
+    }
+
     fun setAvatar(id: String, name: String) {
         logger.i(TAG) { "Selecting avatar: $id" }
         setState { copy(selectedId = id) }
@@ -74,7 +86,7 @@ class AvatarsViewModel(
                 page = pageKey,
                 perPage = 10,
                 query = state.value.query.ifBlank { null },
-                onlyOneShot = null,
+                onlyOneShot = state.value.onlyOneShot.takeIf { it },
             ).onLeft { error ->
                 logger.e(TAG) { "Error loading avatars: $error" }
                 // A 404 on the first page means no results matched the search query —
@@ -125,4 +137,5 @@ data class AvatarsViewState(
     val items: PaginationState<Int, Avatar>,
     val selectedId: String? = null,
     val query: String = "",
+    val onlyOneShot: Boolean = false,
 ) : ViewState

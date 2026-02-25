@@ -52,6 +52,9 @@
     <string name="notification_success_title">Success</string>
     <string name="notification_ok_button">OK</string>
 
+    <!-- Avatars -->
+    <string name="avatars_one_shot">One Shot</string>
+
     <!-- Errors -->
     <string name="error_sdk_error">An error occurred in the SDK. Please try again.</string>
 
