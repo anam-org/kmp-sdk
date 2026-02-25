@@ -4,6 +4,7 @@ import ai.anam.lab.client.core.data.models.Voice
 import ai.anam.lab.client.core.ui.components.CollapsibleHeader
 import ai.anam.lab.client.core.ui.components.PaginationEmptySearchIndicator
 import ai.anam.lab.client.core.ui.components.PaginationErrorIndicator
+import ai.anam.lab.client.core.ui.components.PaginationProgressIndicator
 import ai.anam.lab.client.core.ui.components.PlayPauseButton
 import ai.anam.lab.client.core.ui.components.SearchBar
 import ai.anam.lab.client.core.ui.components.SelectedBadge
@@ -67,6 +68,10 @@ fun VoicesView(
         PaginatedLazyColumn(
             paginationState = viewState.items,
             modifier = Modifier.weight(1f).fillMaxWidth(),
+            firstPageProgressIndicator = { PaginationProgressIndicator() },
+            newPageProgressIndicator = {
+                PaginationProgressIndicator(modifier = Modifier.padding(16.dp))
+            },
             firstPageErrorIndicator = { exception ->
                 PaginationErrorIndicator(
                     exception = exception,
