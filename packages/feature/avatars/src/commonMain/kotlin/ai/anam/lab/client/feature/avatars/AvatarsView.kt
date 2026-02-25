@@ -5,6 +5,7 @@ import ai.anam.lab.client.core.datetime.toFormattedDateString
 import ai.anam.lab.client.core.ui.components.CollapsibleHeader
 import ai.anam.lab.client.core.ui.components.PaginationEmptySearchIndicator
 import ai.anam.lab.client.core.ui.components.PaginationErrorIndicator
+import ai.anam.lab.client.core.ui.components.PaginationProgressIndicator
 import ai.anam.lab.client.core.ui.components.SearchBar
 import ai.anam.lab.client.core.ui.components.SelectedBadge
 import ai.anam.lab.client.core.ui.resources.generated.resources.Res
@@ -110,6 +111,12 @@ fun AvatarsView(
                 columns = GridCells.Fixed(columnCount),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
+                firstPageProgressIndicator = { PaginationProgressIndicator() },
+                newPageProgressIndicator = {
+                    PaginationProgressIndicator(
+                        modifier = Modifier.aspectRatio(4f / 3f),
+                    )
+                },
                 firstPageErrorIndicator = { exception ->
                     PaginationErrorIndicator(
                         exception = exception,
