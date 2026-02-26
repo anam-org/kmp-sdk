@@ -7,7 +7,6 @@ import ai.anam.lab.client.core.ui.resources.generated.resources.session_call_con
 import ai.anam.lab.client.core.ui.resources.generated.resources.session_hangup_content_description
 import ai.anam.lab.client.core.ui.resources.generated.resources.session_mute_content_description
 import ai.anam.lab.client.core.ui.resources.generated.resources.session_unmute_content_description
-import ai.anam.lab.client.core.ui.resources.generated.resources.welcome_hero
 import ai.anam.lab.client.core.ui.theme.asDisabled
 import ai.anam.lab.client.core.ui.video.AvatarVideo
 import ai.anam.lab.client.core.viewmodel.metroViewModel
@@ -47,7 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -132,6 +132,7 @@ fun SessionView(
         // This will help us avoid displaying a blank image until we're ready to display something useful.
         ShutterView(
             imageUrl = viewState.imageUrl,
+            imageUrlFallback = viewState.imageUrlFallback,
             isPreviewLoading = isPreviewLoading,
             isSessionLoading = isSessionLoading,
             modifier = Modifier.fillMaxSize(),
@@ -156,6 +157,7 @@ private val HangupRed = Color(229, 83, 68)
 @Composable
 fun ShutterView(
     imageUrl: String?,
+    imageUrlFallback: DrawableResource?,
     isPreviewLoading: Boolean,
     isSessionLoading: Boolean,
     modifier: Modifier = Modifier,
@@ -171,16 +173,20 @@ fun ShutterView(
             val imageModifier = Modifier
                 .fillMaxSize()
                 .blur(blurRadius)
-            if (imageUrl != null) {
-                AsyncImage(
+            val fallbackPainter = imageUrlFallback?.let { painterResource(it) }
+            val painter = if (imageUrl != null) {
+                rememberAsyncImagePainter(
                     model = imageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = imageModifier,
+                    placeholder = fallbackPainter,
+                    error = fallbackPainter,
+                    fallback = fallbackPainter,
                 )
             } else {
+                fallbackPainter
+            }
+            if (painter != null) {
                 Image(
-                    painter = painterResource(Res.drawable.welcome_hero),
+                    painter = painter,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = imageModifier,
