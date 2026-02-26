@@ -17,6 +17,8 @@ import ai.anam.lab.client.domain.notifications.SendNotificationInteractor
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.hasSize
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
@@ -176,13 +178,13 @@ class AvatarsViewModelTest {
     // region Delete — Success + Re-fetch
 
     @Test
-    fun `successful delete re-fetches loaded pages`() = testScope.runTest {
+    fun `successful delete on non-last page re-fetches last loaded page`() = testScope.runTest {
         val fetchCalls = mutableListOf<Pair<Int, Int>>()
         var lastNotification: Notification? = null
         val viewModel = createViewModel(
             fetchAvatars = { page, perPage, _, _ ->
                 fetchCalls.add(page to perPage)
-                Either.Right(testPage())
+                Either.Right(testPage(lastPage = 2))
             },
             deleteAvatar = { Either.Right(Unit) },
             onSendNotification = { lastNotification = it },
@@ -197,23 +199,67 @@ class AvatarsViewModelTest {
         confirmation.onConfirm()
         runCurrent()
 
-        // Re-fetch with page=1, perPage = pagesLoaded(1) * PAGE_SIZE(10) = 10
+        // Re-fetch only the last loaded page: page=1, perPage=10
         assertThat(fetchCalls).containsExactly(1 to 10)
     }
 
     @Test
-    fun `successful delete updates pagination with re-fetched data`() = testScope.runTest {
-        val remainingAvatar = testAvatar("keep-me")
+    fun `successful delete on last page removes item locally without re-fetch`() = testScope.runTest {
+        val avatar1 = testAvatar("a1")
+        val avatar2 = testAvatar("a2")
+        val avatar3 = testAvatar("a3")
+        val fetchCalls = mutableListOf<Pair<Int, Int>>()
+        var deleteCount = 0
+        var lastNotification: Notification? = null
+        val viewModel = createViewModel(
+            fetchAvatars = { page, perPage, _, _ ->
+                fetchCalls.add(page to perPage)
+                when (deleteCount) {
+                    // First delete refetch: returns remaining items, IS last page
+                    1 -> Either.Right(testPage(avatars = listOf(avatar2, avatar3)))
+                    else -> Either.Right(testPage(avatars = listOf(avatar1, avatar2, avatar3)))
+                }
+            },
+            deleteAvatar = {
+                deleteCount++
+                Either.Right(Unit)
+            },
+            onSendNotification = { lastNotification = it },
+        )
+        runCurrent()
+        fetchCalls.clear()
+
+        // First delete: populates allItems via refetch and sets lastIsLastPage=true
+        viewModel.deleteAvatar("a1")
+        runCurrent()
+        (lastNotification as Notification.Confirmation).onConfirm()
+        runCurrent()
+        fetchCalls.clear()
+
+        // Second delete: allItems is populated and lastIsLastPage=true → local removal only
+        viewModel.deleteAvatar("a2")
+        runCurrent()
+        (lastNotification as Notification.Confirmation).onConfirm()
+        runCurrent()
+
+        assertThat(fetchCalls).isEmpty()
+        assertThat(viewModel.state.value.items.allItems).isNotNull()
+            .containsExactly(avatar3)
+    }
+
+    @Test
+    fun `successful delete on non-last page appends boundary item`() = testScope.runTest {
+        val avatar1 = testAvatar("a1")
+        val avatar2 = testAvatar("a2")
+        val boundaryAvatar = testAvatar("boundary")
         var deleteCalled = false
         var lastNotification: Notification? = null
         val viewModel = createViewModel(
             fetchAvatars = { _, _, _, _ ->
                 if (deleteCalled) {
-                    Either.Right(testPage(avatars = listOf(remainingAvatar)))
+                    Either.Right(testPage(avatars = listOf(avatar2, boundaryAvatar), lastPage = 2))
                 } else {
-                    Either.Right(
-                        testPage(avatars = listOf(testAvatar("delete-me"), remainingAvatar)),
-                    )
+                    Either.Right(testPage(avatars = listOf(avatar1, avatar2), lastPage = 2))
                 }
             },
             deleteAvatar = {
@@ -224,7 +270,7 @@ class AvatarsViewModelTest {
         )
         runCurrent()
 
-        viewModel.deleteAvatar("delete-me")
+        viewModel.deleteAvatar("a1")
         runCurrent()
 
         val confirmation = lastNotification as Notification.Confirmation
@@ -232,7 +278,84 @@ class AvatarsViewModelTest {
         runCurrent()
 
         assertThat(viewModel.state.value.items.allItems).isNotNull()
-            .containsExactly(remainingAvatar)
+            .containsExactly(avatar2, boundaryAvatar)
+    }
+
+    @Test
+    fun `successful delete on non-last page does not duplicate boundary item already in list`() = testScope.runTest {
+        val avatar1 = testAvatar("a1")
+        val avatar2 = testAvatar("a2")
+        var deleteCalled = false
+        var lastNotification: Notification? = null
+        val viewModel = createViewModel(
+            fetchAvatars = { _, _, _, _ ->
+                if (deleteCalled) {
+                    Either.Right(testPage(avatars = listOf(avatar2), lastPage = 2))
+                } else {
+                    Either.Right(testPage(avatars = listOf(avatar1, avatar2), lastPage = 2))
+                }
+            },
+            deleteAvatar = {
+                deleteCalled = true
+                Either.Right(Unit)
+            },
+            onSendNotification = { lastNotification = it },
+        )
+        runCurrent()
+
+        viewModel.deleteAvatar("a1")
+        runCurrent()
+
+        val confirmation = lastNotification as Notification.Confirmation
+        confirmation.onConfirm()
+        runCurrent()
+
+        assertThat(viewModel.state.value.items.allItems).isNotNull()
+            .containsExactly(avatar2)
+    }
+
+    @Test
+    fun `successful delete updates lastIsLastPage from refetched meta`() = testScope.runTest {
+        val avatar1 = testAvatar("a1")
+        val avatar2 = testAvatar("a2")
+        val fetchCalls = mutableListOf<Pair<Int, Int>>()
+        var deleteCount = 0
+        var lastNotification: Notification? = null
+        val viewModel = createViewModel(
+            fetchAvatars = { page, perPage, _, _ ->
+                fetchCalls.add(page to perPage)
+                when (deleteCount) {
+                    0 -> Either.Right(testPage(avatars = listOf(avatar1, avatar2), lastPage = 2))
+                    1 -> Either.Right(testPage(avatars = listOf(avatar2), lastPage = 1))
+                    else -> Either.Right(testPage(avatars = emptyList(), lastPage = 1))
+                }
+            },
+            deleteAvatar = {
+                deleteCount++
+                Either.Right(Unit)
+            },
+            onSendNotification = { lastNotification = it },
+        )
+        runCurrent()
+        fetchCalls.clear()
+
+        // First delete: not on last page, triggers refetch
+        viewModel.deleteAvatar("a1")
+        runCurrent()
+        (lastNotification as Notification.Confirmation).onConfirm()
+        runCurrent()
+
+        assertThat(fetchCalls).hasSize(1)
+        fetchCalls.clear()
+
+        // Second delete: lastIsLastPage should now be true (from refetched meta),
+        // so no re-fetch should occur
+        viewModel.deleteAvatar("a2")
+        runCurrent()
+        (lastNotification as Notification.Confirmation).onConfirm()
+        runCurrent()
+
+        assertThat(fetchCalls).isEmpty()
     }
 
     // endregion
@@ -268,7 +391,7 @@ class AvatarsViewModelTest {
                 if (reFetchShouldFail) {
                     Either.Left(AvatarErrorReason.Unknown("Re-fetch failed"))
                 } else {
-                    Either.Right(testPage())
+                    Either.Right(testPage(lastPage = 2))
                 }
             },
             deleteAvatar = {
