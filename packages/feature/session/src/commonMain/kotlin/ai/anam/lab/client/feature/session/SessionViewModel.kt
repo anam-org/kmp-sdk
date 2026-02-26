@@ -9,6 +9,8 @@ import ai.anam.lab.client.core.notifications.ErrorCode
 import ai.anam.lab.client.core.notifications.Notification
 import ai.anam.lab.client.core.permissions.PermissionResult
 import ai.anam.lab.client.core.permissions.PermissionsManager
+import ai.anam.lab.client.core.ui.resources.generated.resources.Res
+import ai.anam.lab.client.core.ui.resources.generated.resources.welcome_hero
 import ai.anam.lab.client.core.viewmodel.BaseViewModel
 import ai.anam.lab.client.core.viewmodel.ViewState
 import ai.anam.lab.client.domain.data.ObserveCurrentAvatarInteractor
@@ -24,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.DrawableResource
 
 @Inject
 class SessionViewModel(
@@ -143,6 +146,7 @@ data class SessionViewState(
     val permissionsManager: PermissionsManager,
     val sessionState: SessionState = SessionState.None,
     val imageUrl: String? = null,
+    val imageUrlFallback: DrawableResource? = Res.drawable.welcome_hero,
     val videoUrl: String? = null,
     val isAudioMute: Boolean = false,
     val isControlEnabled: Boolean = false,
