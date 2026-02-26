@@ -106,39 +106,55 @@ class AvatarsViewModel(
         }
     }
 
-    // After a successful delete, we can't simply remove the item from the local list because server-side pagination
-    // indices shift by -1 — the next page load would skip an item at the boundary. Instead, we re-fetch all currently
-    // loaded pages in a single request (page=1, perPage=pagesLoaded * PAGE_SIZE) to get a server-consistent list, then
-    // replace the pagination data in place via appendPageWithUpdates. This preserves the user's scroll position while
-    // keeping page boundaries aligned for subsequent page loads. If the re-fetch size exceeds the API's maximum page
-    // size (MAX_PAGE_SIZE), we fall back to a full pagination reset.
+    // After a successful delete we optimize the local list update to avoid re-fetching all loaded pages.
+    // - If we are already on the last page and items are loaded, we just remove the deleted item locally
+    //   (no network call).
+    // - Otherwise, we re-fetch only the last loaded page to discover the boundary item that slides in
+    //   from the next page, filter out the deleted item, and append the boundary item if it is new.
     @OptIn(ExperimentalPaginationApi::class)
     private suspend fun performDeleteAvatar(id: String) {
         logger.i(TAG) { "Deleting avatar: $id" }
         deleteAvatarInteractor(id)
             .onRight {
-                // Re-fetch everything we've loaded so far in one call to stay aligned with server pagination offsets.
-                val pagesLoaded = lastNextPageKey - 1
-                val refetchSize = pagesLoaded * PAGE_SIZE
-                if (refetchSize > MAX_PAGE_SIZE) {
-                    resetPagination()
-                    return@onRight
-                }
-                fetchAvatarsInteractor(
-                    page = 1,
-                    perPage = refetchSize,
-                    query = state.value.query.ifBlank { null },
-                    onlyOneShot = state.value.onlyOneShot.takeIf { it },
-                ).onRight { page ->
-                    lastIsLastPage = page.meta.isLastPage()
+                val currentItems = paginationState.allItems
+
+                if (currentItems != null && lastIsLastPage) {
+                    val filteredItems = currentItems.filter { it.id != id }
                     paginationState.appendPageWithUpdates(
-                        allItems = page.data,
+                        allItems = filteredItems,
                         nextPageKey = lastNextPageKey,
-                        isLastPage = lastIsLastPage,
+                        isLastPage = true,
                     )
-                }.onLeft {
-                    // Re-fetch failed — fall back to a full reset.
-                    resetPagination()
+                } else {
+                    val lastLoadedPage = lastNextPageKey - 1
+                    fetchAvatarsInteractor(
+                        page = lastLoadedPage,
+                        perPage = PAGE_SIZE,
+                        query = state.value.query.ifBlank { null },
+                        onlyOneShot = state.value.onlyOneShot.takeIf { it },
+                    ).onRight { page ->
+                        lastIsLastPage = page.meta.isLastPage()
+                        val updatedItems = if (currentItems != null) {
+                            val filteredItems = currentItems.filter { it.id != id }
+                            val boundaryItem = page.data.lastOrNull()
+                            if (boundaryItem != null &&
+                                filteredItems.none { it.id == boundaryItem.id }
+                            ) {
+                                filteredItems + boundaryItem
+                            } else {
+                                filteredItems
+                            }
+                        } else {
+                            page.data.filter { it.id != id }
+                        }
+                        paginationState.appendPageWithUpdates(
+                            allItems = updatedItems,
+                            nextPageKey = lastNextPageKey,
+                            isLastPage = lastIsLastPage,
+                        )
+                    }.onLeft {
+                        resetPagination()
+                    }
                 }
             }
             .onLeft { error ->
@@ -214,7 +230,6 @@ class AvatarsViewModel(
     private companion object {
         const val TAG = "AvatarsViewModel"
         const val PAGE_SIZE = 10
-        const val MAX_PAGE_SIZE = 100
         const val SEARCH_DEBOUNCE_MS = 300L
     }
 }
