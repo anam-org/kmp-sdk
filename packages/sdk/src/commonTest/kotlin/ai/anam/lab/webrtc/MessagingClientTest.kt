@@ -4,19 +4,20 @@ import ai.anam.lab.api.DataChannelMessage
 import ai.anam.lab.api.DataChannelMessagePayload
 import ai.anam.lab.api.DataChannelMessageType
 import ai.anam.lab.fakes.FakeLogger
-import ai.anam.lab.fakes.FakeStreamingClient
+import ai.anam.lab.fakes.toolCallStartedMessage
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import assertk.assertions.isTrue
 import kotlin.test.Test
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
 
 class MessagingClientTest {
     private val logger = FakeLogger()
-    private val fakeStreamingClient = FakeStreamingClient()
-    private val messagingClient = MessagingClientImpl(fakeStreamingClient, logger)
+    private val dataChannelMessages = MutableSharedFlow<DataChannelMessage>()
+    private val messagingClient = MessagingClientImpl(dataChannelMessages, logger)
 
     @Test
     fun `single message is emitted correctly`() = runTest {
@@ -73,27 +74,20 @@ class MessagingClientTest {
     @Test
     fun `non-TextMessage payloads are filtered out`() = runTest {
         messagingClient.messages.test {
-            val toolMessage = DataChannelMessagePayload.ClientToolMessage(
-                id = "event-1",
-                sessionId = "session-1",
-                name = "redirect",
-                data = """{"url":"https://example.com"}""",
-                timestamp = "2024-01-01T00:00:00Z",
-                targetTimestamp = "2024-01-01T00:00:01Z",
-                correlationId = "corr-001",
-                usedOutsideEngine = false,
-            )
             val textMessage = textMessage(content = "Hello")
 
             // Emit a non-TextMessage payload first - it should be filtered out
-            fakeStreamingClient.emitDataChannelMessage(
-                DataChannelMessage(type = DataChannelMessageType.ClientToolEvent, data = toolMessage),
+            dataChannelMessages.emit(
+                DataChannelMessage(
+                    type = DataChannelMessageType.ToolCallStarted,
+                    data = toolCallStartedMessage(),
+                ),
             )
 
             // Emit a TextMessage - this should be the only one that appears
             emitTextMessage(textMessage)
 
-            // Only the TextMessage should appear, not the ClientToolMessage
+            // Only the TextMessage should appear, not the ToolCallStartedMessage
             val messages = awaitItem()
             assertThat(messages).isEqualTo(listOf(textMessage.toMessage()))
 
@@ -176,7 +170,7 @@ class MessagingClientTest {
     }
 
     private suspend fun emitTextMessage(data: DataChannelMessagePayload.TextMessage) {
-        fakeStreamingClient.emitDataChannelMessage(
+        dataChannelMessages.emit(
             DataChannelMessage(type = DataChannelMessageType.SpeechText, data = data),
         )
     }

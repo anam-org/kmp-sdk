@@ -12,6 +12,7 @@ import ai.anam.lab.webrtc.MessagingClient
 import ai.anam.lab.webrtc.ReasoningClient
 import ai.anam.lab.webrtc.SignallingClient
 import ai.anam.lab.webrtc.StreamingClient
+import ai.anam.lab.webrtc.ToolCallClient
 import com.shepeliev.webrtckmp.AudioTrack
 import com.shepeliev.webrtckmp.VideoTrack
 import kotlin.concurrent.atomics.AtomicBoolean
@@ -66,6 +67,7 @@ public class Session internal constructor(
     private val mediaStreamManager: MediaStreamManager,
     private val messagingClient: MessagingClient,
     private val reasoningClient: ReasoningClient,
+    private val toolCallClient: ToolCallClient,
     private val sessionManager: PlatformSessionManager,
     private val metricsClient: MetricsClient = NoOpMetricsClient,
     private val logger: Logger,
@@ -122,6 +124,7 @@ public class Session internal constructor(
     public val events: Flow<SessionEvent> = merge(
         signallingClient.events,
         streamingClient.events,
+        toolCallClient.events,
         localEvents.asSharedFlow(),
     ).transformWhile { event ->
         // When we receive a ConnectionClosed event, it indicates that it's terminal. We should not emit any further
@@ -205,6 +208,12 @@ public class Session internal constructor(
                 }
             }
 
+            // Start processing tool call events from the data channel. This collects tool call messages and invokes
+            // any registered handlers.
+            jobs += launch {
+                toolCallClient.processMessages()
+            }
+
             if (isLoggingEnabled) {
                 jobs += launch {
                     messages.collect { messages ->
@@ -234,6 +243,9 @@ public class Session internal constructor(
             // main coroutine context being canceled, these will effectively be a no-op.
             jobs.forEach { job -> job.cancel() }
             jobs.clear()
+
+            // Release tool call client resources (pending calls and registered handlers).
+            toolCallClient.release()
 
             // If no ConnectionClosed metric was sent by the event collector (e.g. the parent scope was
             // canceled), send it now. NonCancellable ensures the HTTP call completes even in a canceled scope.
@@ -283,6 +295,18 @@ public class Session internal constructor(
                 timestamp = getCurrentTimestamp(),
             ),
         )
+    }
+
+    /**
+     * Registers a [ToolCallHandler] for the given [toolName]. Returns a function that, when called,
+     * unregisters the handler.
+     *
+     * @param toolName The name of the tool to handle (e.g., "redirect").
+     * @param handler The handler that will be invoked when tool call lifecycle events are received for this tool.
+     * @return A function that, when called, unregisters the handler.
+     */
+    public fun registerToolCallHandler(toolName: String, handler: ToolCallHandler): () -> Unit {
+        return toolCallClient.registerHandler(toolName, handler)
     }
 
     internal fun onFirstFrameRendered() {

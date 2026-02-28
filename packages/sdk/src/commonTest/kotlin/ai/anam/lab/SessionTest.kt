@@ -9,6 +9,7 @@ import ai.anam.lab.fakes.FakePlatformSessionManager
 import ai.anam.lab.fakes.FakeReasoningClient
 import ai.anam.lab.fakes.FakeSignallingClient
 import ai.anam.lab.fakes.FakeStreamingClient
+import ai.anam.lab.fakes.FakeToolCallClient
 import ai.anam.lab.metrics.ClientMetric
 import app.cash.turbine.test
 import assertk.assertThat
@@ -35,6 +36,7 @@ class SessionTest {
     private val mediaStreamManager = FakeMediaStreamManager()
     private val messagingClient = FakeMessagingClient()
     private val reasoningClient = FakeReasoningClient()
+    private val toolCallClient = FakeToolCallClient()
     private val platformSessionManager = FakePlatformSessionManager()
     private val metricsClient = FakeMetricsClient()
 
@@ -470,6 +472,70 @@ class SessionTest {
         job.cancel()
     }
 
+    // region Tool Calls
+
+    @Test
+    fun `events flow merges tool call events`() = runTest(testDispatcher) {
+        withRunningSession { session ->
+            session.events.test {
+                val testEvent = SessionEvent.ToolCallStarted(
+                    ToolCallStartedPayload(
+                        eventUid = "e-1",
+                        toolCallId = "tc-1",
+                        toolName = "redirect",
+                        toolType = "client",
+                        toolSubtype = null,
+                        arguments = mapOf("url" to "https://example.com"),
+                        timestamp = "2024-01-01T00:00:00Z",
+                        timestampUserAction = "2024-01-01T00:00:01Z",
+                        userActionCorrelationId = "corr-001",
+                    ),
+                )
+                toolCallClient.emitEvent(testEvent)
+
+                assertThat(awaitItem()).isEqualTo(testEvent)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
+    fun `registerToolCallHandler delegates to toolCallClient`() = runTest(testDispatcher) {
+        val session = withSession()
+        val handler = ToolCallHandler(onStart = { null })
+
+        session.registerToolCallHandler("redirect", handler)
+
+        assertThat(toolCallClient.registeredHandlers["redirect"]).isEqualTo(handler)
+    }
+
+    @Test
+    fun `registerToolCallHandler returns unsubscribe function`() = runTest(testDispatcher) {
+        val session = withSession()
+        val handler = ToolCallHandler(onStart = { null })
+
+        val unregister = session.registerToolCallHandler("redirect", handler)
+        assertThat(toolCallClient.registeredHandlers.containsKey("redirect")).isTrue()
+
+        unregister()
+        assertThat(toolCallClient.registeredHandlers.containsKey("redirect")).isFalse()
+    }
+
+    @Test
+    fun `toolCallClient is released on session cleanup`() = runTest(testDispatcher) {
+        val session = withSession()
+        val job = launch { session.start() }
+        runCurrent()
+
+        signallingClient.emitEvent(SessionEvent.ConnectionClosed(ConnectionClosedReason.Normal))
+        runCurrent()
+
+        assertThat(toolCallClient.released).isTrue()
+        job.cancel()
+    }
+
+    // endregion
+
     /**
      * Helper function that creates a session, starts it, advances the dispatcher, executes the test body, and ensures
      * proper cleanup by cancelling the session job.
@@ -499,6 +565,7 @@ class SessionTest {
         mediaStreamManager = mediaStreamManager,
         messagingClient = messagingClient,
         reasoningClient = reasoningClient,
+        toolCallClient = toolCallClient,
         sessionManager = platformSessionManager,
         metricsClient = metricsClient,
         logger = logger,
