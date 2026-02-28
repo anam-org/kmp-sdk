@@ -5,7 +5,9 @@ import ai.anam.lab.MessageRole
 import ai.anam.lab.MessageRole.Persona
 import ai.anam.lab.MessageRole.User
 import ai.anam.lab.ReasoningMessage
-import ai.anam.lab.ToolEvent
+import ai.anam.lab.ToolCallCompletedPayload
+import ai.anam.lab.ToolCallFailedPayload
+import ai.anam.lab.ToolCallStartedPayload
 import ai.anam.lab.api.ClientConfig
 import ai.anam.lab.api.DataChannelMessagePayload
 import ai.anam.lab.api.RTCIceServer as ApiIceServer
@@ -22,6 +24,15 @@ import com.shepeliev.webrtckmp.RtcpMuxPolicy
 import com.shepeliev.webrtckmp.SessionDescription
 import com.shepeliev.webrtckmp.SessionDescriptionType
 import com.shepeliev.webrtckmp.TlsCertPolicy
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.longOrNull
 
 /**
  * Extension to convert a given [SessionDescription] instance into the equivalent [RTCSessionDescription].
@@ -139,16 +150,76 @@ internal fun MessageRole.Companion.fromString(value: String): MessageRole {
 }
 
 /**
- * Converts a [DataChannelMessagePayload.ClientToolMessage] to a [ToolEvent].
+ * Converts a [DataChannelMessagePayload.ToolCallStartedMessage] to a [ToolCallStartedPayload].
  */
-internal fun DataChannelMessagePayload.ClientToolMessage.toToolEvent(): ToolEvent {
-    return ToolEvent(
-        eventUid = id,
-        sessionId = sessionId,
-        eventName = name,
-        eventData = data,
+internal fun DataChannelMessagePayload.ToolCallStartedMessage.toPayload(): ToolCallStartedPayload {
+    return ToolCallStartedPayload(
+        eventUid = eventUid,
+        toolCallId = toolCallId,
+        toolName = toolName,
+        toolType = toolType,
+        toolSubtype = toolSubtype,
+        arguments = arguments.toMap(),
         timestamp = timestamp,
-        timestampUserAction = targetTimestamp,
-        userActionCorrelationId = correlationId,
+        timestampUserAction = timestampUserAction,
+        userActionCorrelationId = userActionCorrelationId,
     )
+}
+
+/**
+ * Converts a [DataChannelMessagePayload.ToolCallCompletedMessage] to a [ToolCallCompletedPayload].
+ */
+internal fun DataChannelMessagePayload.ToolCallCompletedMessage.toPayload(
+    executionTime: Long?,
+): ToolCallCompletedPayload {
+    return ToolCallCompletedPayload(
+        eventUid = eventUid,
+        toolCallId = toolCallId,
+        toolName = toolName,
+        toolType = toolType,
+        toolSubtype = toolSubtype,
+        arguments = arguments.toMap(),
+        result = result.toAny(),
+        executionTime = executionTime,
+        timestamp = timestamp,
+        timestampUserAction = timestampUserAction,
+        userActionCorrelationId = userActionCorrelationId,
+        documentsAccessed = documentsAccessed,
+    )
+}
+
+/**
+ * Converts a [DataChannelMessagePayload.ToolCallFailedMessage] to a [ToolCallFailedPayload].
+ */
+internal fun DataChannelMessagePayload.ToolCallFailedMessage.toPayload(executionTime: Long?): ToolCallFailedPayload {
+    return ToolCallFailedPayload(
+        eventUid = eventUid,
+        toolCallId = toolCallId,
+        toolName = toolName,
+        toolType = toolType,
+        toolSubtype = toolSubtype,
+        arguments = arguments.toMap(),
+        errorMessage = errorMessage,
+        executionTime = executionTime,
+        timestamp = timestamp,
+        timestampUserAction = timestampUserAction,
+        userActionCorrelationId = userActionCorrelationId,
+    )
+}
+
+/**
+ * Recursively converts a [JsonObject] to a [Map] with Kotlin-native types.
+ */
+private fun JsonObject.toMap(): Map<String, Any?> = entries.associate { (key, value) ->
+    key to value.toAny()
+}
+
+/**
+ * Converts a [JsonElement] to a Kotlin-native type.
+ */
+private fun JsonElement.toAny(): Any? = when (this) {
+    is JsonNull -> null
+    is JsonPrimitive -> booleanOrNull ?: longOrNull ?: doubleOrNull ?: contentOrNull
+    is JsonArray -> map { it.toAny() }
+    is JsonObject -> toMap()
 }

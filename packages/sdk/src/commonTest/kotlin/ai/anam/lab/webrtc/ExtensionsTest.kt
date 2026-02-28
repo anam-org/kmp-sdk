@@ -3,7 +3,9 @@ package ai.anam.lab.webrtc
 import ai.anam.lab.Message
 import ai.anam.lab.MessageRole
 import ai.anam.lab.ReasoningMessage
-import ai.anam.lab.ToolEvent
+import ai.anam.lab.ToolCallCompletedPayload
+import ai.anam.lab.ToolCallFailedPayload
+import ai.anam.lab.ToolCallStartedPayload
 import ai.anam.lab.api.ClientConfig
 import ai.anam.lab.api.DataChannelMessagePayload
 import ai.anam.lab.api.RTCIceCredentialType
@@ -11,6 +13,9 @@ import ai.anam.lab.api.RTCIceServer
 import ai.anam.lab.api.RTCSessionDescriptionType
 import ai.anam.lab.api.SignalMessagePayload.RTCIceCandidate
 import ai.anam.lab.api.SignalMessagePayload.RTCSessionDescription
+import ai.anam.lab.fakes.toolCallCompletedMessage
+import ai.anam.lab.fakes.toolCallFailedMessage
+import ai.anam.lab.fakes.toolCallStartedMessage
 import assertk.assertThat
 import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
@@ -19,6 +24,11 @@ import com.shepeliev.webrtckmp.SessionDescription
 import com.shepeliev.webrtckmp.SessionDescriptionType
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class ExtensionsTest {
 
@@ -301,29 +311,119 @@ class ExtensionsTest {
     }
 
     @Test
-    fun `ClientToolMessage toToolEvent converts correctly`() {
-        val clientToolMessage = DataChannelMessagePayload.ClientToolMessage(
-            id = "event-789",
-            sessionId = "session-123",
-            name = "redirect",
-            data = """{"url":"https://example.com"}""",
-            timestamp = "2024-01-01T00:00:00Z",
-            targetTimestamp = "2024-01-01T00:00:01Z",
-            correlationId = "corr-001",
-            usedOutsideEngine = true,
-        )
+    fun `ToolCallStartedMessage toPayload converts all fields correctly`() {
+        val message = toolCallStartedMessage()
 
-        val result = clientToolMessage.toToolEvent()
+        val result = message.toPayload()
 
         assertThat(result).isEqualTo(
-            ToolEvent(
+            ToolCallStartedPayload(
                 eventUid = "event-789",
-                sessionId = "session-123",
-                eventName = "redirect",
-                eventData = """{"url":"https://example.com"}""",
+                toolCallId = "tc-001",
+                toolName = "redirect",
+                toolType = "client",
+                toolSubtype = null,
+                arguments = mapOf("url" to "https://example.com"),
                 timestamp = "2024-01-01T00:00:00Z",
                 timestampUserAction = "2024-01-01T00:00:01Z",
                 userActionCorrelationId = "corr-001",
+            ),
+        )
+    }
+
+    @Test
+    fun `ToolCallStartedMessage toPayload handles non-null toolSubtype`() {
+        val message = toolCallStartedMessage(toolSubtype = "webhook")
+
+        val result = message.toPayload()
+
+        assertThat(result.toolSubtype).isEqualTo("webhook")
+    }
+
+    @Test
+    fun `ToolCallCompletedMessage toPayload converts all fields including result and executionTime`() {
+        val message = toolCallCompletedMessage()
+
+        val result = message.toPayload(executionTime = 150L)
+
+        assertThat(result).isEqualTo(
+            ToolCallCompletedPayload(
+                eventUid = "event-789",
+                toolCallId = "tc-001",
+                toolName = "redirect",
+                toolType = "server",
+                toolSubtype = null,
+                arguments = mapOf("url" to "https://example.com"),
+                result = "success",
+                executionTime = 150L,
+                timestamp = "2024-01-01T00:00:00Z",
+                timestampUserAction = "2024-01-01T00:00:01Z",
+                userActionCorrelationId = "corr-001",
+                documentsAccessed = null,
+            ),
+        )
+    }
+
+    @Test
+    fun `ToolCallCompletedMessage toPayload handles null executionTime`() {
+        val message = toolCallCompletedMessage()
+
+        val result = message.toPayload(executionTime = null)
+
+        assertThat(result.executionTime).isEqualTo(null)
+    }
+
+    @Test
+    fun `ToolCallFailedMessage toPayload converts all fields including errorMessage and executionTime`() {
+        val message = toolCallFailedMessage()
+
+        val result = message.toPayload(executionTime = 200L)
+
+        assertThat(result).isEqualTo(
+            ToolCallFailedPayload(
+                eventUid = "event-789",
+                toolCallId = "tc-001",
+                toolName = "redirect",
+                toolType = "server",
+                toolSubtype = null,
+                arguments = mapOf("url" to "https://example.com"),
+                errorMessage = "Tool execution timed out",
+                executionTime = 200L,
+                timestamp = "2024-01-01T00:00:00Z",
+                timestampUserAction = "2024-01-01T00:00:01Z",
+                userActionCorrelationId = "corr-001",
+            ),
+        )
+    }
+
+    @Test
+    fun `ToolCallStartedMessage toPayload converts nested arguments correctly`() {
+        val arguments = buildJsonObject {
+            put("url", "https://example.com")
+            put("count", 42)
+            put("active", true)
+            put("nested", buildJsonObject { put("key", "value") })
+            put(
+                "items",
+                buildJsonArray {
+                    add(JsonPrimitive("a"))
+                    add(JsonPrimitive("b"))
+                },
+            )
+            put("nullable", JsonNull)
+        }
+        val message = toolCallStartedMessage(arguments = arguments)
+
+        val result = message.toPayload()
+
+        assertThat(result.arguments).isEqualTo(
+            mapOf(
+                "url" to "https://example.com",
+                "count" to 42L,
+                "active" to true,
+                "nested" to mapOf("key" to "value"),
+                "items" to listOf("a", "b"),
+                "nullable" to null,
             ),
         )
     }

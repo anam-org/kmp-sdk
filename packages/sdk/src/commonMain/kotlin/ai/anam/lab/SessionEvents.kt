@@ -43,10 +43,19 @@ public sealed interface SessionEvent {
     public data object TalkStreamInterrupted : SessionEvent
 
     /**
-     * The AI persona invokes a client tool. Includes the tool name and arguments for handling UI actions like
-     * navigation or modal displays.
+     * A tool call has been started by the AI Persona.
      */
-    public data class ToolCall(val event: ToolEvent) : SessionEvent
+    public data class ToolCallStarted(val payload: ToolCallStartedPayload) : SessionEvent
+
+    /**
+     * A tool call has completed successfully.
+     */
+    public data class ToolCallCompleted(val payload: ToolCallCompletedPayload) : SessionEvent
+
+    /**
+     * A tool call has failed.
+     */
+    public data class ToolCallFailed(val payload: ToolCallFailedPayload) : SessionEvent
 }
 
 /**
@@ -84,13 +93,58 @@ public sealed interface ConnectionClosedReason {
 }
 
 /**
- * Represents the Tool that the AI Persona wishes to invoke,
+ * Payload for a tool call that has been started by the AI Persona.
  */
-public data class ToolEvent(
+public data class ToolCallStartedPayload(
     val eventUid: String,
-    val sessionId: String,
-    val eventName: String,
-    val eventData: String,
+    val toolCallId: String,
+    val toolName: String,
+    val toolType: String,
+    val toolSubtype: String?,
+    val arguments: Map<String, Any?>,
+    val timestamp: String,
+    val timestampUserAction: String,
+    val userActionCorrelationId: String,
+)
+
+/**
+ * Payload for a tool call that has completed successfully.
+ */
+public data class ToolCallCompletedPayload(
+    val eventUid: String,
+    val toolCallId: String,
+    val toolName: String,
+    val toolType: String,
+    val toolSubtype: String?,
+    val arguments: Map<String, Any?>,
+
+    /**
+     * The tool call result. For server-originated completions, this is parsed from JSON and may be a [String], [Long],
+     * [Double], [Boolean], [Map]<String, Any?>, [List]<Any?>, or `null`. For client tool auto-completions, this is the
+     * [String] returned from [ToolCallHandler.onStart].
+     */
+    val result: Any?,
+    val executionTime: Long?,
+    val timestamp: String,
+    val timestampUserAction: String,
+    val userActionCorrelationId: String,
+
+    /** File names accessed during the tool call, if applicable (RAG tools only). */
+    val documentsAccessed: List<String>? = null,
+)
+
+/**
+ * Payload for a tool call that has failed.
+ */
+public data class ToolCallFailedPayload(
+    val eventUid: String,
+    val toolCallId: String,
+    val toolName: String,
+    val toolType: String,
+    val toolSubtype: String?,
+    val arguments: Map<String, Any?>,
+    val errorMessage: String,
+    val executionTime: Long?,
     val timestamp: String,
     val timestampUserAction: String,
     val userActionCorrelationId: String,

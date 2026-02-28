@@ -1,5 +1,8 @@
 package ai.anam.lab.api
 
+import ai.anam.lab.fakes.toolCallCompletedMessage
+import ai.anam.lab.fakes.toolCallFailedMessage
+import ai.anam.lab.fakes.toolCallStartedMessage
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
@@ -40,25 +43,6 @@ class DataChannelApiTest {
                     content = "Let me think about this",
                     role = "persona",
                     endOfThought = false,
-                ),
-            ),
-        )
-    }
-
-    @Test
-    fun `ClientToolMessage serializes and deserializes correctly`() {
-        testSerialization(
-            DataChannelMessage(
-                type = DataChannelMessageType.ClientToolEvent,
-                data = DataChannelMessagePayload.ClientToolMessage(
-                    id = "event-456",
-                    sessionId = "session-789",
-                    name = "redirect",
-                    data = """{"url":"https://example.com"}""",
-                    timestamp = "2024-01-01T00:00:00Z",
-                    targetTimestamp = "2024-01-01T00:00:01Z",
-                    correlationId = "corr-001",
-                    usedOutsideEngine = true,
                 ),
             ),
         )
@@ -120,6 +104,129 @@ class DataChannelApiTest {
             ),
         )
     }
+
+    // region Tool Call Serialization
+
+    @Test
+    fun `ToolCallStartedMessage serializes and deserializes correctly`() {
+        testSerialization(
+            DataChannelMessage(
+                type = DataChannelMessageType.ToolCallStarted,
+                data = toolCallStartedMessage(),
+            ),
+        )
+    }
+
+    @Test
+    fun `ToolCallCompletedMessage serializes and deserializes correctly`() {
+        testSerialization(
+            DataChannelMessage(
+                type = DataChannelMessageType.ToolCallCompleted,
+                data = toolCallCompletedMessage(),
+            ),
+        )
+    }
+
+    @Test
+    fun `ToolCallFailedMessage serializes and deserializes correctly`() {
+        testSerialization(
+            DataChannelMessage(
+                type = DataChannelMessageType.ToolCallFailed,
+                data = toolCallFailedMessage(),
+            ),
+        )
+    }
+
+    @Test
+    fun `ToolCallStartedMessage handles optional toolSubtype as null`() {
+        val message = toolCallStartedMessage(toolSubtype = null)
+        val dataChannelMessage = DataChannelMessage(
+            type = DataChannelMessageType.ToolCallStarted,
+            data = message,
+        )
+
+        val jsonString = json.encodeToString(DataChannelMessage.serializer(), dataChannelMessage)
+        val deserialized = json.decodeFromString(DataChannelMessage.serializer(), jsonString)
+
+        val payload = deserialized.data as DataChannelMessagePayload.ToolCallStartedMessage
+        assertThat(payload.toolSubtype).isEqualTo(null)
+    }
+
+    @Test
+    fun `polymorphic serializer selects ToolCallStartedMessage for tool_call_id without result or error`() {
+        val rawJson = """
+            {
+                "messageType": "toolCallStarted",
+                "data": {
+                    "event_uid": "e-1",
+                    "session_id": "s-1",
+                    "tool_call_id": "tc-1",
+                    "tool_name": "redirect",
+                    "tool_type": "client",
+                    "arguments": {"url": "https://example.com"},
+                    "timestamp": "2024-01-01T00:00:00Z",
+                    "timestamp_user_action": "2024-01-01T00:00:01Z",
+                    "user_action_correlation_id": "corr-1",
+                    "used_outside_engine": true
+                }
+            }
+        """.trimIndent()
+
+        val deserialized = json.decodeFromString(DataChannelMessage.serializer(), rawJson)
+        assertThat(deserialized.data).isInstanceOf<DataChannelMessagePayload.ToolCallStartedMessage>()
+    }
+
+    @Test
+    fun `polymorphic serializer selects ToolCallCompletedMessage when result is present`() {
+        val rawJson = """
+            {
+                "messageType": "toolCallCompleted",
+                "data": {
+                    "event_uid": "e-1",
+                    "session_id": "s-1",
+                    "tool_call_id": "tc-1",
+                    "tool_name": "redirect",
+                    "tool_type": "server",
+                    "arguments": {},
+                    "timestamp": "2024-01-01T00:00:00Z",
+                    "timestamp_user_action": "2024-01-01T00:00:01Z",
+                    "user_action_correlation_id": "corr-1",
+                    "used_outside_engine": true,
+                    "result": "ok"
+                }
+            }
+        """.trimIndent()
+
+        val deserialized = json.decodeFromString(DataChannelMessage.serializer(), rawJson)
+        assertThat(deserialized.data).isInstanceOf<DataChannelMessagePayload.ToolCallCompletedMessage>()
+    }
+
+    @Test
+    fun `polymorphic serializer selects ToolCallFailedMessage when error_message is present`() {
+        val rawJson = """
+            {
+                "messageType": "toolCallFailed",
+                "data": {
+                    "event_uid": "e-1",
+                    "session_id": "s-1",
+                    "tool_call_id": "tc-1",
+                    "tool_name": "redirect",
+                    "tool_type": "server",
+                    "arguments": {},
+                    "timestamp": "2024-01-01T00:00:00Z",
+                    "timestamp_user_action": "2024-01-01T00:00:01Z",
+                    "user_action_correlation_id": "corr-1",
+                    "used_outside_engine": true,
+                    "error_message": "timeout"
+                }
+            }
+        """.trimIndent()
+
+        val deserialized = json.decodeFromString(DataChannelMessage.serializer(), rawJson)
+        assertThat(deserialized.data).isInstanceOf<DataChannelMessagePayload.ToolCallFailedMessage>()
+    }
+
+    // endregion
 
     private fun testSerialization(message: DataChannelMessage) {
         val jsonString = json.encodeToString(DataChannelMessage.serializer(), message)
