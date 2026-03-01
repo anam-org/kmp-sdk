@@ -3,6 +3,8 @@ package ai.anam.lab.client.core.client.di
 import ai.anam.lab.AnamClient
 import ai.anam.lab.AnamClientOptions
 import ai.anam.lab.PlatformContext
+import ai.anam.lab.client.core.client.ApiConfig
+import ai.anam.lab.client.core.http.ApiBaseUrl
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
@@ -12,9 +14,18 @@ import dev.zacsweers.metro.SingleIn
 interface ClientSubgraph {
     @Provides
     @SingleIn(AppScope::class)
-    fun providesAnamClient(context: PlatformContext): AnamClient = AnamClient(
+    fun providesApiConfig(): ApiConfig = ApiConfig()
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun providesApiBaseUrl(apiConfig: ApiConfig): ApiBaseUrl = ApiBaseUrl(apiConfig.environment.baseUrl)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun providesAnamClient(context: PlatformContext, apiConfig: ApiConfig): AnamClient = AnamClient(
         options = AnamClientOptions(
             context = context,
+            environment = apiConfig.environment,
         ),
     )
 }

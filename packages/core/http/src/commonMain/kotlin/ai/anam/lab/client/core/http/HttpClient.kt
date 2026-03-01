@@ -26,7 +26,7 @@ val defaultJsonConfiguration = Json {
  * Function to build a [HttpClient] that can talk to the Anam API. This API uses a physical key, rather than a session
  * token.
  */
-fun buildApiHttpClient(token: () -> String?, logger: Logger) = HttpClient {
+fun buildApiHttpClient(baseUrl: String, token: () -> String?, logger: Logger) = HttpClient {
     install(Auth) {
         bearer {
             loadTokens {
@@ -48,7 +48,7 @@ fun buildApiHttpClient(token: () -> String?, logger: Logger) = HttpClient {
     install(HttpTimeout)
 
     defaultRequest {
-        url("https://api.anam.ai/")
+        url(baseUrl)
     }
 
     // Configure ktor to throw a ResponseException if we don't get a successful status code.
