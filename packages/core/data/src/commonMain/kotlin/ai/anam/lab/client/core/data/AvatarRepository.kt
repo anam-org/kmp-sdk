@@ -14,6 +14,7 @@ import ai.anam.lab.client.core.data.models.toAvatarResult
 import ai.anam.lab.client.core.data.models.toAvatarUnitResult
 import ai.anam.lab.client.core.di.Dispatcher
 import ai.anam.lab.client.core.di.DispatcherType
+import ai.anam.lab.client.core.http.ApiHttpConfig
 import ai.anam.lab.client.core.logging.Logger
 import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
@@ -24,6 +25,7 @@ import kotlinx.coroutines.withContext
 class AvatarRepository(
     avatarApi: Lazy<AvatarApi>,
     private val httpClient: HttpClient,
+    private val apiHttpConfig: ApiHttpConfig,
     @Dispatcher(DispatcherType.IO) private val ioDispatcher: CoroutineDispatcher,
     private val logger: Logger,
 ) {
@@ -108,7 +110,9 @@ class AvatarRepository(
         withContext(ioDispatcher) {
             logger.i(TAG) { "Creating avatar: $displayName (${imageData.size} bytes)" }
             cancellableRunCatching {
-                apiCall { avatarApi.createAvatar(httpClient, displayName, imageData) }
+                apiCall {
+                    avatarApi.createAvatar(httpClient, displayName, imageData, apiHttpConfig.uploadTimeoutMs)
+                }
             }.fold(
                 onSuccess = { apiResult ->
                     logger.i(TAG) { if (apiResult is ApiResult.Success) "Success: $apiResult" else "Error: $apiResult" }

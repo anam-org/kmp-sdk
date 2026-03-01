@@ -1,7 +1,7 @@
 package ai.anam.lab.client.core.http.di
 
 import ai.anam.lab.client.core.auth.AuthRepository
-import ai.anam.lab.client.core.http.ApiBaseUrl
+import ai.anam.lab.client.core.http.ApiHttpConfig
 import ai.anam.lab.client.core.http.InvalidateAuthTokensInteractor
 import ai.anam.lab.client.core.http.buildApiHttpClient
 import ai.anam.lab.client.core.http.invalidateAuthTokens
@@ -17,18 +17,19 @@ import io.ktor.client.HttpClient
 interface HttpSubgraph {
     @Provides
     @SingleIn(AppScope::class)
-    fun providesHttpClient(authRepository: AuthRepository, logger: Logger, apiBaseUrl: ApiBaseUrl): HttpClient =
+    fun providesHttpClient(authRepository: AuthRepository, logger: Logger, apiHttpConfig: ApiHttpConfig): HttpClient =
         buildApiHttpClient(
-            baseUrl = apiBaseUrl.value,
+            baseUrl = apiHttpConfig.baseUrl,
+            requestTimeoutMs = apiHttpConfig.requestTimeoutMs,
             token = authRepository::getApiToken,
             logger = logger,
         )
 
     @Provides
     @SingleIn(AppScope::class)
-    fun providesKtorfit(httpClient: HttpClient, apiBaseUrl: ApiBaseUrl): Ktorfit = Ktorfit.Builder()
+    fun providesKtorfit(httpClient: HttpClient, apiHttpConfig: ApiHttpConfig): Ktorfit = Ktorfit.Builder()
         .httpClient(httpClient)
-        .baseUrl(apiBaseUrl.value)
+        .baseUrl(apiHttpConfig.baseUrl)
         .build()
 
     @Provides

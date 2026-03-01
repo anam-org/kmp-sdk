@@ -4,7 +4,7 @@ import ai.anam.lab.AnamClient
 import ai.anam.lab.AnamClientOptions
 import ai.anam.lab.PlatformContext
 import ai.anam.lab.client.core.client.ApiConfig
-import ai.anam.lab.client.core.http.ApiBaseUrl
+import ai.anam.lab.client.core.http.ApiHttpConfig
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
@@ -18,7 +18,11 @@ interface ClientSubgraph {
 
     @Provides
     @SingleIn(AppScope::class)
-    fun providesApiBaseUrl(apiConfig: ApiConfig): ApiBaseUrl = ApiBaseUrl(apiConfig.environment.baseUrl)
+    fun providesApiHttpConfig(apiConfig: ApiConfig): ApiHttpConfig = ApiHttpConfig(
+        baseUrl = apiConfig.environment.baseUrl,
+        requestTimeoutMs = apiConfig.requestTimeoutMs,
+        uploadTimeoutMs = apiConfig.uploadTimeoutMs,
+    )
 
     @Provides
     @SingleIn(AppScope::class)
