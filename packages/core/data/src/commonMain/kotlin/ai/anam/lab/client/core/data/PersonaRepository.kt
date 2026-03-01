@@ -5,9 +5,8 @@ import ai.anam.lab.client.core.logging.Logger
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * This repository is responsible for managing the current (active) [Persona]. This can be modified before a Session is
@@ -20,8 +19,8 @@ class PersonaRepository(private val logger: Logger) {
     /**
      * A flow that represents the currently selected [Persona].
      */
-    private val _current = MutableStateFlow(DEFAULT_PERSONA)
-    val current: Flow<Persona> = _current.asStateFlow()
+    val current: StateFlow<Persona>
+        field = MutableStateFlow(DEFAULT_PERSONA)
 
     fun withName(name: String) = with { copy(name = name) }
     fun withAvatar(id: String, updatedName: String? = null) = with { copy(avatarId = id, name = updatedName ?: name) }
@@ -31,12 +30,12 @@ class PersonaRepository(private val logger: Logger) {
     fun withMaxSessionLengthSeconds(seconds: Int) = with { copy(maxSessionLengthSeconds = seconds) }
 
     fun reset() {
-        _current.value = DEFAULT_PERSONA
+        current.value = DEFAULT_PERSONA
         logger.i(TAG) { "Persona reset to defaults" }
     }
 
     private fun with(block: Persona.() -> Persona) {
-        _current.value = _current.value.block().also {
+        current.value = current.value.block().also {
             logger.i(TAG) { "Updated Persona: $it" }
         }
     }

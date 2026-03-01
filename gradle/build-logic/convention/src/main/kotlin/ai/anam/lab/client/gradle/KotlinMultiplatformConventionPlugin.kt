@@ -69,6 +69,8 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
             configureSpotless()
         }
 
+        configureKotlin()
+
         // Workaround for KT-82395: "No file found for source null" when compiler plugins
         // (Metro, Compose, etc.) generate top-level declarations with incremental compilation.
         // Use OUT_OF_PROCESS strategy which disables incremental for wasmJs only.
