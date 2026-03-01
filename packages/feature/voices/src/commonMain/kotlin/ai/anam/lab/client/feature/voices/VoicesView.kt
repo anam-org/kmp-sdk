@@ -172,7 +172,7 @@ fun VoicePreview(sampleUrl: String?, modifier: Modifier = Modifier) {
         val playerHost = remember {
             MediaPlayerHost(
                 mediaUrl = sampleUrl,
-                isPaused = true,
+                autoPlay = false,
                 isLooping = false,
             )
         }

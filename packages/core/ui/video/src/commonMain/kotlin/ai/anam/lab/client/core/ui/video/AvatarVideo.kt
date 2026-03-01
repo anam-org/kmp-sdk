@@ -27,6 +27,7 @@ fun AvatarVideo(
     val playerHost = remember(url) {
         MediaPlayerHost(
             mediaUrl = url,
+            autoPlay = true,
             isLooping = true,
         )
     }
