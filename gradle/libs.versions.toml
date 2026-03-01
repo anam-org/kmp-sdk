@@ -37,7 +37,7 @@ androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navi
 kermit = { module = "co.touchlab:kermit", version = "2.0.8" }
 multiplatform-settings-core = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
 multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
-multiplatform-media-player = { module = "network.chaintech:compose-multiplatform-media-player", version = "1.0.50" }
+multiplatform-media-player = { module = "network.chaintech:compose-multiplatform-media-player", version = "1.0.53" }
 moko-permissions-core = { module = "dev.icerock.moko:permissions", version.ref = "moko-permissions"}
 moko-permissions-microphone = { module = "dev.icerock.moko:permissions-microphone", version.ref = "moko-permissions"}
 moko-permissions-camera = { module = "dev.icerock.moko:permissions-camera", version.ref = "moko-permissions"}
