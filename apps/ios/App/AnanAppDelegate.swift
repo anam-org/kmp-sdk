@@ -1,5 +1,7 @@
 import UIKit
 import Shared
+import FirebaseCore
+import FirebaseCrashlytics
 
 /// App delegate responsible for setting up Compose Multiplatform and managing orientation.
 ///
@@ -45,6 +47,11 @@ class AnanAppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        FirebaseApp.configure()
+        #if DEBUG
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
+        #endif
+
         Logger.logInfo("AnanAppDelegate") { "Launched" }
 
         // Begin observing physical device orientation to manage the orientation lock.
