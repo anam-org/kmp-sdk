@@ -16,9 +16,8 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -37,12 +36,12 @@ class SessionRepository(
     private val coroutineScope: CoroutineScope,
 ) {
 
-    private val _activeSession = MutableStateFlow<Session?>(null)
-    val activeSession = _activeSession.asStateFlow()
+    val activeSession: StateFlow<Session?>
+        field = MutableStateFlow<Session?>(null)
     private val actionSessionJobs = mutableListOf<Job>()
 
-    private val _isAudioMute = MutableStateFlow(false)
-    val isAudioMute: Flow<Boolean> = _isAudioMute.asStateFlow()
+    val isAudioMute: StateFlow<Boolean>
+        field = MutableStateFlow(false)
 
     suspend fun startSession(person: Persona): SessionState {
         // Before starting any session, let's make sure a previous one has been cleaned up.
@@ -68,8 +67,8 @@ class SessionRepository(
         return when (result) {
             is SessionResult.Success -> {
                 val session = result.session
-                _activeSession.value = session
-                _isAudioMute.value = session.isLocalAudioMuted
+                activeSession.value = session
+                isAudioMute.value = session.isLocalAudioMuted
 
                 logger.i(TAG) { "Session created successfully: ${session.id}" }
                 actionSessionJobs += coroutineScope.launch {
@@ -97,7 +96,7 @@ class SessionRepository(
     }
 
     fun stopSession(): SessionState {
-        val session = _activeSession.value
+        val session = activeSession.value
         if (session != null) {
             logger.i(TAG) { "Stopping Session: ${session.id}" }
             cleanupSession()
@@ -107,10 +106,10 @@ class SessionRepository(
     }
 
     private fun cleanupSession() {
-        if (_activeSession.value == null) return
+        if (activeSession.value == null) return
 
-        _activeSession.value = null
-        _isAudioMute.value = false
+        activeSession.value = null
+        isAudioMute.value = false
         actionSessionJobs.forEach { it.cancel() }
         actionSessionJobs.clear()
     }
@@ -119,7 +118,7 @@ class SessionRepository(
         val text = content.trim()
         if (text.isEmpty()) return
 
-        val session = _activeSession.value
+        val session = activeSession.value
         if (session == null) {
             logger.i(TAG) { "No active session; ignoring sendUserMessage call." }
             return
@@ -130,17 +129,17 @@ class SessionRepository(
     }
 
     fun toggleAudioMute() {
-        val session = _activeSession.value ?: return
+        val session = activeSession.value ?: return
 
-        val isMute = _isAudioMute.value
+        val isMute = isAudioMute.value
         if (isMute) {
             logger.i(TAG) { "Unmuting local audio" }
             session.setLocalAudioMuted(false)
-            _isAudioMute.value = false
+            isAudioMute.value = false
         } else {
             logger.i(TAG) { "Muting local audio" }
             session.setLocalAudioMuted(true)
-            _isAudioMute.value = true
+            isAudioMute.value = true
         }
     }
 

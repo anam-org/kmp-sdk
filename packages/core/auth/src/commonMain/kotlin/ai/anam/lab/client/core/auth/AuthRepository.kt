@@ -8,7 +8,6 @@ import kotlin.concurrent.Volatile
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * Manages the API authentication token. The token is resolved from two sources with the following
@@ -26,17 +25,16 @@ class AuthRepository(private val preferences: AnamPreferences) {
     @Volatile
     private var cachedToken: String? = BuildConfig.API_TOKEN.ifEmpty { null }
 
-    private val _apiKeyChanged = MutableSharedFlow<Unit>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-
     /**
      * Emits [Unit] each time the API key is changed via [setApiKey]. Uses a buffered flow so that
      * slow subscribers (e.g. those triggering network calls) do not block delivery to fast
      * subscribers. Subscribers that attach after an emission will not receive it (replay = 0).
      */
-    val apiKeyChanged: SharedFlow<Unit> = _apiKeyChanged.asSharedFlow()
+    val apiKeyChanged: SharedFlow<Unit>
+        field = MutableSharedFlow<Unit>(
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     init {
         val stored = preferences.apiKey.getBlocking()
@@ -63,7 +61,7 @@ class AuthRepository(private val preferences: AnamPreferences) {
         // Persisting "" is safe: the init block checks isNotEmpty() before overriding cachedToken,
         // so an empty stored value is effectively treated as "no key".
         preferences.apiKey.set(trimmed)
-        _apiKeyChanged.emit(Unit)
+        apiKeyChanged.emit(Unit)
         return true
     }
 }
