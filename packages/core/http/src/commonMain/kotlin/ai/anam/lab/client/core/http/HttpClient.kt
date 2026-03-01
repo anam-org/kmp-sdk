@@ -26,7 +26,7 @@ val defaultJsonConfiguration = Json {
  * Function to build a [HttpClient] that can talk to the Anam API. This API uses a physical key, rather than a session
  * token.
  */
-fun buildApiHttpClient(baseUrl: String, token: () -> String?, logger: Logger) = HttpClient {
+fun buildApiHttpClient(baseUrl: String, requestTimeoutMs: Long, token: () -> String?, logger: Logger) = HttpClient {
     install(Auth) {
         bearer {
             loadTokens {
@@ -45,7 +45,11 @@ fun buildApiHttpClient(baseUrl: String, token: () -> String?, logger: Logger) = 
         json(defaultJsonConfiguration)
     }
 
-    install(HttpTimeout)
+    install(HttpTimeout) {
+        requestTimeoutMillis = requestTimeoutMs
+        connectTimeoutMillis = requestTimeoutMs
+        socketTimeoutMillis = requestTimeoutMs
+    }
 
     defaultRequest {
         url(baseUrl)

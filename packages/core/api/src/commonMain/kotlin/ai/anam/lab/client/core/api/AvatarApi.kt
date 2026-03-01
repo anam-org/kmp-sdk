@@ -68,18 +68,16 @@ data class Avatar(
     val createdByOrganizationId: String? = null,
 )
 
-private const val DEFAULT_UPLOAD_TIMEOUT_MS = 300_000L // 5 minutes for AI avatar processing
-
 /**
- * Creates a one-shot avatar from an image. This uses [submitFormWithBinaryData] directly rather
- * than Ktorfit because the multipart parts must be constructed manually — Ktor's [formData]
- * builder drops the `filename` parameter from `Content-Disposition`, which the API requires.
+ * Creates a one-shot avatar from an image. This uses [submitFormWithBinaryData] directly rather than Ktorfit because
+ * the multipart parts must be constructed manually — Ktor's [formData] builder drops the `filename` parameter from
+ * `Content-Disposition`, which the API requires.
  */
 suspend fun AvatarApi.createAvatar(
     httpClient: HttpClient,
     displayName: String,
     imageData: ByteArray,
-    timeoutMs: Long = DEFAULT_UPLOAD_TIMEOUT_MS,
+    timeoutMs: Long,
 ): Avatar {
     val parts = listOf(
         PartData.FormItem(
