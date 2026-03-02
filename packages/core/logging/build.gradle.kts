@@ -14,8 +14,22 @@ kotlin {
             }
         }
 
+        androidMain {
+            dependencies {
+                implementation(libs.kermit.crashlytics)
+            }
+        }
+
+        iosMain {
+            dependencies {
+                implementation(libs.kermit.crashlytics)
+            }
+        }
+
         commonTest {
             dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.assertk)
             }
         }
     }

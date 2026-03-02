@@ -21,6 +21,10 @@ dokka = "2.1.0"
 licensee = "1.14.1"
 buildConfig = "6.0.7"
 maven-publish = "0.36.0"
+google-services = "4.4.2"
+firebase-bom = "33.7.0"
+firebase-crashlytics-plugin = "3.0.3"
+kermit = "2.0.8"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -34,7 +38,8 @@ androidx-splashscreen = "androidx.core:core-splashscreen:1.2.0"
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
-kermit = { module = "co.touchlab:kermit", version = "2.0.8" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+kermit-crashlytics = { module = "co.touchlab:kermit-crashlytics", version.ref = "kermit" }
 multiplatform-settings-core = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
 multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
 multiplatform-media-player = { module = "network.chaintech:compose-multiplatform-media-player", version = "1.0.53" }
@@ -63,6 +68,8 @@ coil-network-ktor3-wasm-js = { module = "io.coil-kt.coil3:coil-network-ktor3-was
 lazy-paginated-compose = { module = "io.github.ahmad-hamwi:lazy-pagination-compose", version = "1.7.3" }
 peekaboo-ui = { module = "io.github.onseok:peekaboo-ui", version.ref = "peekaboo" }
 peekaboo-image-picker = { module = "io.github.onseok:peekaboo-image-picker", version.ref = "peekaboo" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 
 # Compose Multiplatform dependencies
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
@@ -99,3 +106,5 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 licensee = { id = "app.cash.licensee", version.ref = "licensee" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }

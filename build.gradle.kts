@@ -18,6 +18,8 @@ plugins {
     alias(libs.plugins.licensee) apply false
     alias(libs.plugins.buildConfig) apply false
     alias(libs.plugins.maven.publish) apply false
+    alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
 }
 
 tasks.register("printVersion") {
