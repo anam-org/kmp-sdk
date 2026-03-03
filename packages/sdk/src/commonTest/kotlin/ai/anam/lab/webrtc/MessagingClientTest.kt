@@ -4,6 +4,7 @@ import ai.anam.lab.api.DataChannelMessage
 import ai.anam.lab.api.DataChannelMessagePayload
 import ai.anam.lab.api.DataChannelMessageType
 import ai.anam.lab.fakes.FakeLogger
+import ai.anam.lab.fakes.FakeStreamingClient
 import ai.anam.lab.fakes.toolCallStartedMessage
 import app.cash.turbine.test
 import assertk.assertThat
@@ -11,13 +12,12 @@ import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import assertk.assertions.isTrue
 import kotlin.test.Test
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
 
 class MessagingClientTest {
     private val logger = FakeLogger()
-    private val dataChannelMessages = MutableSharedFlow<DataChannelMessage>()
-    private val messagingClient = MessagingClientImpl(dataChannelMessages, logger)
+    private val streamingClient = FakeStreamingClient()
+    private val messagingClient = MessagingClientImpl(streamingClient, logger)
 
     @Test
     fun `single message is emitted correctly`() = runTest {
@@ -77,7 +77,7 @@ class MessagingClientTest {
             val textMessage = textMessage(content = "Hello")
 
             // Emit a non-TextMessage payload first - it should be filtered out
-            dataChannelMessages.emit(
+            streamingClient.emitDataChannelMessage(
                 DataChannelMessage(
                     type = DataChannelMessageType.ToolCallStarted,
                     data = toolCallStartedMessage(),
@@ -170,7 +170,7 @@ class MessagingClientTest {
     }
 
     private suspend fun emitTextMessage(data: DataChannelMessagePayload.TextMessage) {
-        dataChannelMessages.emit(
+        streamingClient.emitDataChannelMessage(
             DataChannelMessage(type = DataChannelMessageType.SpeechText, data = data),
         )
     }
