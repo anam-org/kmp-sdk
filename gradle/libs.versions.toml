@@ -19,7 +19,7 @@ webrtc = "0.125.11"
 coil = "3.4.0"
 dokka = "2.1.0"
 licensee = "1.14.1"
-buildConfig = "6.0.7"
+buildConfig = "6.0.8"
 maven-publish = "0.36.0"
 
 [libraries]
