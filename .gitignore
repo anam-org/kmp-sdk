@@ -27,3 +27,6 @@ kotlin-js-store/
 
 # Generated license report (produced by licensee plugin during build)
 **/composeResources/files/licenses.json
+
+# Git worktrees
+.worktrees/
