@@ -1,6 +1,6 @@
 [versions]
 agp = "9.1.0"
-androidx-activity = "1.12.4"
+androidx-activity = "1.13.0"
 androidx-compose-bom = "2026.02.01"
 androidx-lifecycle = "2.9.6"
 androidx-navigation = "2.9.2"
