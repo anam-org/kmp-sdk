@@ -1,6 +1,6 @@
 # Anam AI Kotlin Multiplatform SDK
 
-[![Maven Central](https://img.shields.io/maven-central/v/ai.anam/anam-kotlin-sdk)](https://search.maven.org/search?q=g:ai.anam) ![Build status](https://github.com/anam-ai/kmp-sdk/actions/workflows/ci.yml/badge.svg)
+[![Maven Central](https://img.shields.io/maven-central/v/ai.anam/anam-kotlin-sdk)](https://search.maven.org/search?q=g:ai.anam) ![Build status](https://github.com/anam-org/kmp-sdk/actions/workflows/ci.yml/badge.svg)
 
 This is the Anam AI Kotlin Multiplatform SDK. It's an experimental SDK (not official) to integrate Anam's digital personas into your product.
 
