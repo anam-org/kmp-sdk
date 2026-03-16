@@ -1,5 +1,7 @@
 # Anam AI Kotlin Multiplatform SDK
 
+[![Maven Central](https://img.shields.io/maven-central/v/ai.anam/anam-kotlin-sdk)](https://search.maven.org/search?q=g:ai.anam) ![Build status](https://github.com/anam-ai/kmp-sdk/actions/workflows/ci.yml/badge.svg)
+
 This is the Anam AI Kotlin Multiplatform SDK. It's an experimental SDK (not official) to integrate Anam's digital personas into your product.
 
 ![Example Application Screenshots](screenshots/screenshot.png)
@@ -11,6 +13,39 @@ The Anam AI Kotlin Multiplatform SDK is designed to help developers integrate An
 The project includes an example Multiplatform application that targets Android, iOS, and Web (wasmJs), built with Compose Multiplatform.
 
 **⚠️ Experimental Disclaimer**: This SDK is experimental and intended for demonstration purposes. While we allow people to use this code in production, they do so at their own risk. We welcome and accept PRs for any bugs or improvements.
+
+## Installation
+
+The SDK is available on [Maven Central](https://search.maven.org/search?q=g:ai.anam).
+
+### Kotlin Multiplatform
+
+Add the dependency to your `build.gradle.kts`:
+
+```kotlin
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("ai.anam:anam-kotlin-sdk:<version>")
+        }
+    }
+}
+```
+
+### Android-only (Groovy)
+
+```groovy
+dependencies {
+    implementation "ai.anam:anam-kotlin-sdk-android:<version>"
+}
+```
+
+### Version Catalog
+
+```toml
+[libraries]
+anam-sdk = { module = "ai.anam:anam-kotlin-sdk", version = "<version>" }
+```
 
 ## Requirements
 
