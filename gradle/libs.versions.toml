@@ -2,7 +2,7 @@
 agp = "9.1.0"
 androidx-activity = "1.13.0"
 androidx-compose-bom = "2026.03.00"
-androidx-lifecycle = "2.9.6"
+androidx-lifecycle = "2.10.0"
 androidx-navigation = "2.9.2"
 compose-multiplatform = "1.10.3"
 compose-rules = "0.4.27"
