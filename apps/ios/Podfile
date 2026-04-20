@@ -5,5 +5,5 @@ use_frameworks!
 
 target 'App' do
   pod 'shared', :path => '../../packages/sdk'
-  pod 'WebRTC-SDK', '144.7559.01'
+  pod 'WebRTC-SDK', '144.7559.04'
 end
