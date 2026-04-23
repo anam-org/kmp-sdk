@@ -93,7 +93,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 cacheFixPlugin = { id = "org.gradle.android.cache-fix", version = "3.0.3" }
 metro = { id = "dev.zacsweers.metro", version = "0.13.2" }
-ksp = { id = "com.google.devtools.ksp", version = "2.3.6" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.7" }
 ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 licensee = { id = "app.cash.licensee", version.ref = "licensee" }
